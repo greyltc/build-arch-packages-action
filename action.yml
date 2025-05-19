@@ -18,14 +18,17 @@ runs:
 
     - name: Get current date
       id: date
+      shell: bash
       run: echo "TODAY_IS=$(date +'%Y%m%d')" >> $GITHUB_ENV
 
     - name: Generate version string
       id: versionstring
+      shell: bash
       run: echo "THIS_VERSTRING=${{ env.TODAY_IS }}.0.${{ github.run_number }}" >> $GITHUB_ENV
 
     - name: Get Actions Bot ID
       id: gbid
+      shell: bash
       if: github.event_name != 'pull_request'
       run: |
         curl --silent \
