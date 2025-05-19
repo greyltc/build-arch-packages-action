@@ -108,7 +108,7 @@ runs:
       shell: bash
       run: |
         cp -a ${GITHUB_ACTION_PATH}/.dockerignore .
-        cp -a ${GITHUB_ACTION_PATH}/.gitignore .
+        cat ${GITHUB_ACTION_PATH}/.gitignore >> .gitignore
         cp -a ${GITHUB_ACTION_PATH}/Dockerfile .
         cp -a ${GITHUB_ACTION_PATH}/builder.sh .
 
