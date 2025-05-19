@@ -104,13 +104,16 @@ runs:
       run: |
         ls -al "$GITHUB_ACTION_PATH"
 
-    - name: copy package dirs
+    - name: copy build machinery
       shell: bash
-      run: find . -type d -exec cp -a {} ${GITHUB_ACTION_PATH}/.
+      run: |
+        cp -a ${GITHUB_ACTION_PATH}/.dockerignore .
+        cp -a ${GITHUB_ACTION_PATH}/.gitignore .
+        cp -a ${GITHUB_ACTION_PATH}/Dockerfile .
+        cp -a ${GITHUB_ACTION_PATH}/builder.sh .
 
     # https://github.com/marketplace/actions/docker-setup-buildx
     - name: Docker Setup Buildx
-      working-directory: github.action_path
       uses: docker/setup-buildx-action@v2
 
     # https://github.com/marketplace/actions/build-and-push-docker-images
