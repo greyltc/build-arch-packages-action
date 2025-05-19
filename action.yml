@@ -41,10 +41,31 @@ runs:
         --output bot_info.json
         echo "bot-id=$(cat bot_info.json | jq --raw-output '.id')" >> $GITHUB_OUTPUT
 
-    - name: List files in the repository
+    - name: pwd1
       shell: bash
       run: |
-        ls ${{ github.workspace }}
+        pwd
+
+    - name: Set GitHub Path
+      run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
+      shell: bash
+      env:
+        GITHUB_ACTION_PATH: ${{ github.action_path }}
+
+    - name: pwd2
+      shell: bash
+      run: |
+        pwd
+  
+    - name: List files1
+      shell: bash
+      run: |
+        ls -al ${{ github.workspace }}
+
+    - name: List files2
+      shell: bash
+      run: |
+        ls -al
 
     # https://github.com/marketplace/actions/docker-setup-buildx
     - name: Docker Setup Buildx
