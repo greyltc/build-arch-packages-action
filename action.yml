@@ -41,6 +41,10 @@ runs:
         --output bot_info.json
         echo "bot-id=$(cat bot_info.json | jq --raw-output '.id')" >> $GITHUB_OUTPUT
 
+    - name: List files in the repository
+      run: |
+        ls ${{ github.workspace }}
+
     # https://github.com/marketplace/actions/docker-setup-buildx
     - name: Docker Setup Buildx
       uses: docker/setup-buildx-action@v2
