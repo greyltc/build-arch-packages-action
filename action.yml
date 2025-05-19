@@ -56,12 +56,14 @@ runs:
     # https://github.com/docker/build-push-action/issues/252
     # https://github.com/moby/buildkit/issues/1896
     - name: Move cache
+      shell: bash
       run: |
         rm -rf /tmp/.buildx-cache
         mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
     - name: Tag & Push
       if: github.event_name != 'pull_request'
+      shell: bash
       run: |
         git tag -a "v${{ env.THIS_VERSTRING }}" -m "Build ${{ env.THIS_VERSTRING }}"
         git push -u origin $(git rev-parse --abbrev-ref HEAD) --tags
@@ -69,6 +71,7 @@ runs:
     # https://docs.github.com/en/rest/reference/releases#create-a-release
     - name: Make release and upload assets
       if: github.event_name != 'pull_request'
+      shell: bash
       run: |
         curl --silent \
           --url https://api.github.com/repos/${{ github.repository }}/releases \
