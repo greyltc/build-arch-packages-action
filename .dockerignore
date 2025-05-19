@@ -1,0 +1,10 @@
+.github/
+Dockerfile
+.dockerignore
+#.gitignore
+#.git/
+out/
+README.md
+*/src/
+*/pkg/
+custompkgs/

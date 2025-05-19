@@ -1,0 +1,9 @@
+pkg/
+src/
+*.tar.zst
+*.tar.gz
+.SRCINFO
+out/
+bot_info.json
+*.part
+custompkgs/
