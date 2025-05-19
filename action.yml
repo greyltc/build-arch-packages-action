@@ -42,6 +42,7 @@ runs:
         echo "bot-id=$(cat bot_info.json | jq --raw-output '.id')" >> $GITHUB_OUTPUT
 
     - name: List files in the repository
+      shell: bash
       run: |
         ls ${{ github.workspace }}
 
