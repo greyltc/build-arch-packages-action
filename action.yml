@@ -64,6 +64,12 @@ runs:
         echo "$GITHUB_ACTION"
         echo "$GITHUB_ACTION_REPOSITORY"
 
+    - name: ls3
+      shell: bash
+      run: |
+        ls -al "$GITHUB_PATH"
+        ls -al "$GITHUB_ACTION_PATH"
+
     - name: Set GitHub Path
       run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
       shell: bash
