@@ -141,6 +141,8 @@ runs:
       if: github.event_name != 'pull_request'
       shell: bash
       run: |
+        git config user.email "robot@github-actions.com"
+        git config user.name "Github Actions Robot"
         git tag -a "v${{ env.THIS_VERSTRING }}" -m "Build ${{ env.THIS_VERSTRING }}"
         git push -u origin $(git rev-parse --abbrev-ref HEAD) --tags
 
