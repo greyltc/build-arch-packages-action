@@ -1,5 +1,10 @@
 name: 'Build Arch packages'
 description: 'Build Arch Linux packages'
+inputs:
+  github-token:
+    description: 'GitHub Token'
+    required: true
+    default: 'FAIL'
 runs:
   using: "composite"
   steps:
@@ -75,7 +80,7 @@ runs:
       run: |
         curl --silent \
           --url https://api.github.com/repos/${{ github.repository }}/releases \
-          --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+          --header 'authorization: Bearer ${{ inputs.github-token }}' \
           --header "Accept: application/vnd.github.v3+json" \
           --data '{"draft":false,"tag_name":"v${{ env.THIS_VERSTRING }}","name":"${{ env.THIS_VERSTRING }}"}' \
           --output rel_resp.json
@@ -90,7 +95,7 @@ runs:
           # https://docs.github.com/en/rest/reference/releases#upload-a-release-asset
           curl --silent \
             --url "${ASSET_UL_URL}" \
-            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+            --header 'authorization: Bearer ${{ inputs.github-token }}' \
             --header "Accept: application/vnd.github.v3+json" \
             --header "Content-Type: $(file --brief --mime-type ${ASSET_FILE})" \
             --data-binary @${ASSET_FILE} \
@@ -104,7 +109,7 @@ runs:
           jq -n --arg arg_name "${ASSET_NAME}" '{"name":$arg_name}' | curl --silent \
             --request PATCH \
             --url "${ASSET_URL}" \
-            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+            --header 'authorization: Bearer ${{ inputs.github-token }}' \
             --header "Accept: application/vnd.github.v3+json" \
             --data @- \
             --output asset_update.json
