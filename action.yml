@@ -8,16 +8,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: pwd0
-      shell: bash
-      run: |
-        pwd
-
-    - name: List files0
-      shell: bash
-      run: |
-        ls -al
-
     # https://github.com/marketplace/actions/checkout
     - name: Checkout repo
       uses: actions/checkout@v3
@@ -51,60 +41,13 @@ runs:
         --output bot_info.json
         echo "bot-id=$(cat bot_info.json | jq --raw-output '.id')" >> $GITHUB_OUTPUT
 
-    - name: pwd1
-      shell: bash
-      run: |
-        pwd
-
-    - name: printvars0
-      shell: bash
-      run: |
-        echo "$GITHUB_PATH"
-        echo "$GITHUB_ACTION_PATH"
-        echo "$GITHUB_ACTION"
-        echo "$GITHUB_ACTION_REPOSITORY"
-
-    - name: ls3
-      shell: bash
-      run: |
-        ls -al "$GITHUB_PATH"
-        ls -al "$GITHUB_ACTION_PATH"
-
     - name: Set GitHub Path
       run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
       shell: bash
       env:
         GITHUB_ACTION_PATH: ${{ github.action_path }}
 
-    - name: printvars1
-      shell: bash
-      run: |
-        echo "$GITHUB_PATH"
-        echo "$GITHUB_ACTION_PATH"
-        echo "$GITHUB_ACTION"
-        echo "$GITHUB_ACTION_REPOSITORY"
-
-    - name: pwd2
-      shell: bash
-      run: |
-        pwd
-  
-    - name: List files1
-      shell: bash
-      run: |
-        ls -al ${{ github.workspace }}
-
-    - name: List files2
-      shell: bash
-      run: |
-        ls -al
-
-    - name: List files3
-      shell: bash
-      run: |
-        ls -al "$GITHUB_ACTION_PATH"
-
-    - name: copy build machinery
+    - name: Copy build machinery
       shell: bash
       run: |
         cp -a ${GITHUB_ACTION_PATH}/.dockerignore .
