@@ -19,8 +19,8 @@ main() {
 	chown --recursive archie /packages /out /home/custompkgs /home/srcpackages
 
 	runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz
-	sed -i 's,^#PKGDEST=/home/packages,PKGDEST=/home/custompkgs,' /etc/pacman.conf
-	sed -i 's,^#SRCPKGDEST=/home/srcpackages,SRCPKGDEST=/home/srcpackages,' /etc/pacman.conf
+	sed -i 's,^#PKGDEST=/home/packages,PKGDEST=/home/custompkgs,' /etc/makepkg.conf
+	sed -i 's,^#SRCPKGDEST=/home/srcpackages,SRCPKGDEST=/home/srcpackages,' /etc/makepkg.conf
 	sed -i 's,^#[custom],[custom],' /etc/pacman.conf
 	sed -i 's,^#SigLevel = Optional TrustAll,SigLevel = Optional TrustAll,' /etc/pacman.conf
 	sed -i 's,^#Server = file:///home/custompkgs ,Server = file:///home/custompkgs ,' /etc/pacman.conf
