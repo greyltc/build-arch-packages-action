@@ -9,6 +9,7 @@ main() {
 	git config --global --add safe.directory /packages
  
 	echo "ls cache 0"
+ 	ls -al /home
  	if test -d /home/custompkgs; then
 		ls -al /home/custompkgs
 	 	if test -f /home/custompkgs/custom.db.tar.gz; then
