@@ -15,6 +15,7 @@ main() {
 	mkdir --parents /out /home/srcpackages
 	chown --recursive archie /packages /out /home/custompkgs /home/srcpackages
 
+ 	rm -rf /home/custompkgs/custom.db.tar.gz
 	runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz
  	find /home/custompkgs -t file -name '*.pkg.tar.zsz' -exec runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz {} \;
 	sed -i 's,^#PKGDEST=/home/packages,PKGDEST=/home/custompkgs,' /etc/makepkg.conf
