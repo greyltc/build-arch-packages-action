@@ -28,7 +28,7 @@ main() {
 
  	rm -rf /home/custompkgs/custom.db.tar.gz
 	runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz
- 	find /home/custompkgs -t file -name '*.pkg.tar.zsz' -exec runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz {} \;
+ 	find /home/custompkgs -type f -name '*.pkg.tar.zsz' -exec runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz {} \;
 	sed -i 's,^#PKGDEST=/home/packages,PKGDEST=/home/custompkgs,' /etc/makepkg.conf
 	sed -i 's,^#SRCPKGDEST=/home/srcpackages,SRCPKGDEST=/home/srcpackages,' /etc/makepkg.conf
 	sed -i 's,^#[custom],[custom],' /etc/pacman.conf
