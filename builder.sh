@@ -21,16 +21,17 @@ main() {
 	sed -i 's,^#[custom],[custom],' /etc/pacman.conf
 	sed -i 's,^#SigLevel = Optional TrustAll,SigLevel = Optional TrustAll,' /etc/pacman.conf
 	sed -i 's,^#Server = file:///home/custompkgs ,Server = file:///home/custompkgs ,' /etc/pacman.conf
- 	echo 'options=(!debug)' > /etc/makepkg.conf.d/nodebug.conf
-  	
-
+ 	echo 'OPTIONS=(!debug)' > /etc/makepkg.conf.d/nodebug.conf
+  	pacman --sync --refresh --sysupgrade --noconfirm
+  
 	echo "ls cache A"
 	ls -al /home/custompkgs
 	ls -al /home/srcpackages
+ 	zcat /home/custompkgs/custom.db.tar.gz | tar -tv
 
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru" --syncdeps --install --clean --noconfirm --rmdeps
 	clean_orphans
- 	rm -rf 
+ 	rm -rf /home/custompkgs/paru-debug-2.0.4-1-x86_64.pkg.tar.zst
 
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/{PKGBUILD,aurutils.changelog,aurutils.install}?h=aurutils" --syncdeps --install --clean --noconfirm --rmdeps
 	clean_orphans
@@ -38,6 +39,7 @@ main() {
 	echo "ls cache B"
 	ls -al /home/custompkgs
 	ls -al /home/srcpackages
+ 	zcat /home/custompkgs/custom.db.tar.gz | tar -tv
 
 	cd /packages
 	find -name PKGBUILD -execdir sh -c 'runuser -u archie -- makepkg --printsrcinfo > .SRCINFO' \;
@@ -63,6 +65,11 @@ main() {
 		popd
 	done
 	git clean -ffxd
+
+	echo "ls cache C"
+	ls -al /home/custompkgs
+	ls -al /home/srcpackages
+ 	zcat /home/custompkgs/custom.db.tar.gz | tar -tv
 }
 
 getver() {
