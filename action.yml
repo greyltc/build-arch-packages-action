@@ -41,6 +41,17 @@ runs:
         --output bot_info.json
         echo "bot-id=$(cat bot_info.json | jq --raw-output '.id')" >> $GITHUB_OUTPUT
 
+    - name: Set build version
+      if: github.event_name != 'pull_request'
+      shell: bash
+      run: |
+        echo "Setting version ${THIS_VERSTRING}"
+        echo "${THIS_VERSTRING}" > automated_build_number.txt
+        git config --global user.name "${ACTIONS_BOT_NAME%[*}"
+        git config --global user.email "${{ steps.gbid.outputs.bot-id }}+${ACTIONS_BOT_NAME}@users.noreply.github.com"
+        git add .
+        git commit -m "set build version ${{ env.THIS_VERSTRING }}"
+
     - name: Set GitHub Path
       run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
       shell: bash
@@ -85,8 +96,6 @@ runs:
       if: github.event_name != 'pull_request'
       shell: bash
       run: |
-        git config user.email "robot@github-actions.com"
-        git config user.name "Github Actions Robot"
         git tag -a "v${{ env.THIS_VERSTRING }}" -m "Build ${{ env.THIS_VERSTRING }}"
         git push -u origin $(git rev-parse --abbrev-ref HEAD) --tags
 
