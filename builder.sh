@@ -12,9 +12,6 @@ main() {
 	echo "archie ALL=(ALL) NOPASSWD: /usr/bin/pacman" > "/etc/sudoers.d/allow_archie_to_pacman"
 	echo "root ALL=(ALL) CWD=* ALL" > /etc/sudoers.d/permissive_root_Chdir_Spec
 
-	curl --silent --location https://gist.githubusercontent.com/greyltc/8a93d417a052e00372984ff8ec224703/raw/7b438370dbb63683849c7ed993f54a47ffe4d7dd/makepkg-url.sh > /usr/bin/makepkg-url
-        chmod +x /usr/bin/makepkg-url
-
 	mkdir --parents /out /home/srcpackages
 	chown --recursive archie /packages /out /home/custompkgs /home/srcpackages
 
