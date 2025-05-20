@@ -49,6 +49,7 @@ runs:
         echo "${THIS_VERSTRING}" > automated_build_number.txt
         git config --global user.name "${ACTIONS_BOT_NAME%[*}"
         git config --global user.email "${{ steps.gbid.outputs.bot-id }}+${ACTIONS_BOT_NAME}@users.noreply.github.com"
+        cat .gitignore
         git add .
         git commit -m "set build version ${{ env.THIS_VERSTRING }}"
 
