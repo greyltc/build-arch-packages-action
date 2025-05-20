@@ -33,7 +33,7 @@ main() {
 	sed -i 's,^#SRCPKGDEST=/home/srcpackages,SRCPKGDEST=/home/srcpackages,' /etc/makepkg.conf
 	sed -i 's,^#[custom],[custom],' /etc/pacman.conf
 	sed -i 's,^#SigLevel = Optional TrustAll,SigLevel = Optional TrustAll,' /etc/pacman.conf
-	sed -i 's,^#Server = file:///home/custompkgs ,Server = file:///home/custompkgs ,' /etc/pacman.conf
+	sed -i 's,^#Server = file:///home/custompkgs,Server = file:///home/custompkgs,' /etc/pacman.conf
  	echo 'OPTIONS=(!debug)' > /etc/makepkg.conf.d/nodebug.conf
   	pacman --sync --refresh --sysupgrade --noconfirm
   
