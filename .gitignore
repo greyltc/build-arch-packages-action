@@ -11,3 +11,4 @@ custompkgs/
 .gitignore
 Dockerfile
 builder.sh
+makepkg-url.sh
