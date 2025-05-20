@@ -41,6 +41,15 @@ runs:
         --output bot_info.json
         echo "bot-id=$(cat bot_info.json | jq --raw-output '.id')" >> $GITHUB_OUTPUT
 
+    - name: Copy build machinery
+      shell: bash
+      run: |
+        cp -a ${{ github.action_path }}/.dockerignore .
+        cat ${{ github.action_path }}/.gitignore >> .gitignore
+        cp -a ${{ github.action_path }}/Dockerfile .
+        cp -a ${{ github.action_path }}/builder.sh .
+        cp -a ${{ github.action_path }}/makepkg-url.sh .
+
     - name: Set build version
       if: github.event_name != 'pull_request'
       shell: bash
@@ -49,24 +58,8 @@ runs:
         echo "${THIS_VERSTRING}" > automated_build_number.txt
         git config --global user.name "${ACTIONS_BOT_NAME%[*}"
         git config --global user.email "${{ steps.gbid.outputs.bot-id }}+${ACTIONS_BOT_NAME}@users.noreply.github.com"
-        cat .gitignore
         git add .
         git commit -m "set build version ${{ env.THIS_VERSTRING }}"
-
-    - name: Set GitHub Path
-      run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
-      shell: bash
-      env:
-        GITHUB_ACTION_PATH: ${{ github.action_path }}
-
-    - name: Copy build machinery
-      shell: bash
-      run: |
-        cp -a ${GITHUB_ACTION_PATH}/.dockerignore .
-        cat ${GITHUB_ACTION_PATH}/.gitignore >> .gitignore
-        cp -a ${GITHUB_ACTION_PATH}/Dockerfile .
-        cp -a ${GITHUB_ACTION_PATH}/builder.sh .
-        cp -a ${GITHUB_ACTION_PATH}/makepkg-url.sh .
 
     # https://github.com/marketplace/actions/docker-setup-buildx
     - name: Docker Setup Buildx
