@@ -15,22 +15,27 @@ main() {
 	mkdir --parents /out /home/srcpackages
 	chown --recursive archie /packages /out /home/custompkgs /home/srcpackages
 
-	runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz
+	runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz /home/custompkgs/*.pkg.tar.zst
 	sed -i 's,^#PKGDEST=/home/packages,PKGDEST=/home/custompkgs,' /etc/makepkg.conf
 	sed -i 's,^#SRCPKGDEST=/home/srcpackages,SRCPKGDEST=/home/srcpackages,' /etc/makepkg.conf
 	sed -i 's,^#[custom],[custom],' /etc/pacman.conf
 	sed -i 's,^#SigLevel = Optional TrustAll,SigLevel = Optional TrustAll,' /etc/pacman.conf
 	sed -i 's,^#Server = file:///home/custompkgs ,Server = file:///home/custompkgs ,' /etc/pacman.conf
  	echo 'options=(!debug)' > /etc/makepkg.conf.d/nodebug.conf
+  	
+
+	echo "ls cache A"
+	ls -al /home/custompkgs
+	ls -al /home/srcpackages
 
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru" --syncdeps --install --clean --noconfirm --rmdeps
 	clean_orphans
-	#install_paru
+ 	rm -rf 
 
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/{PKGBUILD,aurutils.changelog,aurutils.install}?h=aurutils" --syncdeps --install --clean --noconfirm --rmdeps
 	clean_orphans
 
-	echo "lsing"
+	echo "ls cache B"
 	ls -al /home/custompkgs
 	ls -al /home/srcpackages
 
@@ -39,7 +44,8 @@ main() {
 	for d in */ ; do
 		pushd "${d}"
 		if test ! -f DONTBUILD -a -f PKGBUILD; then
-			#this_ver=$(getver)
+			echo "building $(pwd) version $(getver)"
+   
    			TMPDIR=$(runuser -u archie -- mktemp -p /var/tmp --directory)
 			SRCPKGDEST="${TMPDIR}" runuser -w SRCPKGDEST -u archie -- makepkg --allsource  # --sign
    			cp ${TMPDIR}/*.src.tar.gz /home/srcpackages/.
@@ -57,17 +63,6 @@ main() {
 		popd
 	done
 	git clean -ffxd
-}
-
-install_paru() {
-	pushd /home/archie
-	runuser -u archie -- curl --silent --location --remote-name https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru
-	this_ver=$(getver)
-	runuser -u archie -- makepkg-url "file:///home/archie/PKGBUILD" --syncdeps --install --clean --noconfirm --rmdeps
-	rm PKGBUILD
-	rm --recursive --force .cargo
-	popd
-	clean_orphans
 }
 
 getver() {
