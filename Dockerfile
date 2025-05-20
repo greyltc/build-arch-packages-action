@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.15
-FROM archlinux:base-devel as build
+FROM archlinux:base-devel AS build
 COPY . /packages/
 COPY builder.sh /root/
 COPY makepkg-url.sh /usr/bin/makepkg-url
