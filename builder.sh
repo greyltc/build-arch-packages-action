@@ -7,6 +7,13 @@ main() {
 	pacman --sync --refresh --noconfirm archlinux-keyring
 	pacman --sync --refresh --sysupgrade --noconfirm git
 	git config --global --add safe.directory /packages
+ 
+	echo "ls cache 0"
+	ls -al /home/custompkgs
+	ls -al /home/srcpackages
+ 	if test -f /home/custompkgs/custom.db.tar.gz; then
+ 		zcat /home/custompkgs/custom.db.tar.gz | tar -tv
+   	fi
 
 	useradd --create-home archie
 	echo "archie ALL=(ALL) NOPASSWD: /usr/bin/pacman" > "/etc/sudoers.d/allow_archie_to_pacman"
