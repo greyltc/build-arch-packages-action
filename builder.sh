@@ -42,11 +42,11 @@ main() {
 		pushd "${d}"
 		if test ! -f DONTBUILD -a -f PKGBUILD; then
 			#this_ver=$(getver)
-   			TMPDIR=$(runuser -u archie mktemp -p /var/tmp --directory)
+   			TMPDIR=$(runuser -u archie -- mktemp -p /var/tmp --directory)
 			SRCPKGDEST="${TMPDIR}" runuser -w SRCPKGDEST -u archie -- makepkg --allsource  # --sign
    			cp ${TMPDIR}/*.src.tar.gz /home/srcpackages/.
 			mv ${TMPDIR}/*.src.tar.gz /out/.
-   			TMPDIR=$(runuser -u archie mktemp -p /var/tmp --directory)
+   			TMPDIR=$(runuser -u archie -- mktemp -p /var/tmp --directory)
 			PKGDEST="${TMPDIR}" runuser -w PKGDEST -u archie -- paru --upgrade --noconfirm
 			clean_orphans
    			cp ${TMPDIR}/*.pkg.tar.zst /home/custompkgs/.
