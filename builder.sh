@@ -24,6 +24,7 @@ main() {
 	sed -i 's,^#[custom],[custom],' /etc/pacman.conf
 	sed -i 's,^#SigLevel = Optional TrustAll,SigLevel = Optional TrustAll,' /etc/pacman.conf
 	sed -i 's,^#Server = file:///home/custompkgs ,Server = file:///home/custompkgs ,' /etc/pacman.conf
+ 	echo 'options=(!debug)' > /etc/makepkg.conf.d/nodebug.conf
 
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru" --syncdeps --install --clean --noconfirm --rmdeps
 	clean_orphans
