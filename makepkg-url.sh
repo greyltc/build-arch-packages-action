@@ -1,36 +1,37 @@
 #!/usr/bin/env bash
 # builds an Arch package from files given in a (curl glob formatted) URL
+# origionally from https://gist.github.com/greyltc/8a93d417a052e00372984ff8ec224703
 # example usage; (re)build and install the aurutils package:
-# from https://gist.github.com/greyltc/8a93d417a052e00372984ff8ec224703
+# bash <(curl -sL https://raw.githubusercontent.com/greyltc/build-arch-packages-action/7a7acb293a10165a479ed812f8e5be4bc12ff630/makepkg-url.sh) "https://aur.archlinux.org/cgit/aur.git/plain/{PKGBUILD,aurutils.changelog,aurutils.install}?h=aurutils" --install --force
 
 set -e
 
-TMPDIR=$(mktemp -p /var/tmp --directory)
+TMPDIR="$(mktemp -p /var/tmp --directory)"
 touch "${TMPDIR}/.deleteme"
 
 main() {
-  trap clean_up EXIT
+	trap clean_up EXIT
 
-  URL="$1"; shift
+	URL="$1"; shift
 
-  pushd "${TMPDIR}" > /dev/null
+	cd "${TMPDIR}"
 
-  curl --silent --remote-name "${URL}"
+	curl --silent --remote-name "${URL}"
 
-  makepkg --clean "$@"
+	makepkg --clean "$@"
 
-  popd > /dev/null
+	cd -
 }
 
 clean_up () {
-  CODE=$?
-  # echo "Cleaning up ${TMPDIR}"
-  if test -f "${TMPDIR}/.deleteme"; then
-    rm --force --recursive "${TMPDIR}"
-  else
-    echo "Not cleaning up."
-  fi
-  exit ${CODE}
+	CODE=$?
+	# echo "Cleaning up ${TMPDIR}"
+	if test -f "${TMPDIR}/.deleteme"; then
+		rm --force --recursive "${TMPDIR}"
+	else
+		echo "Not cleaning up."
+	fi
+	exit ${CODE}
 }
 
 main "$@"

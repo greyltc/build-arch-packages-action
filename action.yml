@@ -13,8 +13,12 @@ runs:
       uses: actions/checkout@v4
 
     # https://github.com/marketplace/actions/cache
+    # github actions caching here doesn't actually work in practice because the dockerfile uses --mount=type=cache
+    # and we have https://github.com/moby/buildkit/issues/1512#issuecomment-1192878530
+    # something like https://github.com/moby/buildkit/issues/1512#issuecomment-1319736671 would probably need to be deployed in the dockerfile
     - name: Cache pacman db
       uses: actions/cache@v4
+      id: buildx-cache
       with:
         path: /tmp/.buildx-cache
         key: ${{ runner.os }}-buildx-${{ github.sha }}
@@ -41,6 +45,15 @@ runs:
         --output bot_info.json
         echo "bot-id=$(cat bot_info.json | jq --raw-output '.id')" >> $GITHUB_OUTPUT
 
+    #- name: Copy build machinery
+    #  shell: bash
+    #  run: |
+    #    cp -a ${{ github.action_path }}/.dockerignore .
+    #    cat ${{ github.action_path }}/.gitignore >> .gitignore
+    #    cp -a ${{ github.action_path }}/Dockerfile .
+    #    cp -a ${{ github.action_path }}/builder.sh .
+    #    cp -a ${{ github.action_path }}/makepkg-url.sh .
+
     - name: Set build version
       if: github.event_name != 'pull_request'
       shell: bash
@@ -52,43 +65,37 @@ runs:
         git add .
         git commit -m "set build version ${{ env.THIS_VERSTRING }}"
 
-    - name: Set GitHub Path
-      run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
-      shell: bash
-      env:
-        GITHUB_ACTION_PATH: ${{ github.action_path }}
-
-    - name: Copy build machinery
-      shell: bash
-      run: |
-        cp -a ${GITHUB_ACTION_PATH}/.dockerignore .
-        cat ${GITHUB_ACTION_PATH}/.gitignore >> .gitignore
-        cp -a ${GITHUB_ACTION_PATH}/Dockerfile .
-        cp -a ${GITHUB_ACTION_PATH}/builder.sh .
-        cp -a ${GITHUB_ACTION_PATH}/makepkg-url.sh .
-
     # https://github.com/marketplace/actions/docker-setup-buildx
     - name: Docker Setup Buildx
       uses: docker/setup-buildx-action@v3
 
     # https://github.com/marketplace/actions/build-and-push-docker-images
+    # github actions caching here doesn't actually work in practice because the dockerfile uses --mount=type=cache
+    # and we have https://github.com/moby/buildkit/issues/1512#issuecomment-1192878530
+    # something like https://github.com/moby/buildkit/issues/1512#issuecomment-1319736671 would probably need to be deployed in the dockerfile
     - name: Build only the new packages
       id: build
       uses: docker/build-push-action@v6
       with:
-        push: false
         target: export
         outputs: type=local,dest=out
-        context: .
+        context: ${{ github.action_path }}
+        build-contexts: packages=.
+        #cache-from: type=gha
+        #cache-to: type=gha,mode=max
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
     # Temp fix
     # https://github.com/docker/build-push-action/issues/252
     # https://github.com/moby/buildkit/issues/1896
+    # github actions caching here doesn't actually work in practice because the dockerfile uses --mount=type=cache
+    # and we have https://github.com/moby/buildkit/issues/1512#issuecomment-1192878530
+    # something like https://github.com/moby/buildkit/issues/1512#issuecomment-1319736671 would probably need to be deployed in the dockerfile
     - name: Move cache
       shell: bash
       run: |
+        ls -alh  /tmp/.buildx*
         rm -rf /tmp/.buildx-cache
         mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
