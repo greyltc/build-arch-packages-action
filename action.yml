@@ -45,15 +45,6 @@ runs:
         --output bot_info.json
         echo "bot-id=$(cat bot_info.json | jq --raw-output '.id')" >> $GITHUB_OUTPUT
 
-    #- name: Copy build machinery
-    #  shell: bash
-    #  run: |
-    #    cp -a ${{ github.action_path }}/.dockerignore .
-    #    cat ${{ github.action_path }}/.gitignore >> .gitignore
-    #    cp -a ${{ github.action_path }}/Dockerfile .
-    #    cp -a ${{ github.action_path }}/builder.sh .
-    #    cp -a ${{ github.action_path }}/makepkg-url.sh .
-
     - name: Set build version
       if: github.event_name != 'pull_request'
       shell: bash
