@@ -1,7 +1,7 @@
 # build-arch-packages-action
 Arch Linux package builder GitHub action
 
-# Local build
+## Local build
 You can use this repo to build your Arch Linux packages locally too:
 ```
 # starting from a directory containing package folders that each contain PKGBUILD files, etc.
