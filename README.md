@@ -5,7 +5,7 @@ Arch Linux package builder GitHub action
 
 ### GitHub actions example
 Let's assume you have a github repo with Arch Linux package folders at the top level. Then you could create a `.github/workflows/build.yaml` file in your repo containing
-```
+```yaml
 name: Build and Release Arch Linux packages
 on:
   push:
