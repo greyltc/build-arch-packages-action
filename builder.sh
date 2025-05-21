@@ -29,12 +29,12 @@ main() {
 
  	rm -rf /home/custompkgs/custom.db.tar.gz
 	runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz
- 	find /home/custompkgs -type f -name '*.pkg.tar.zsz' -exec runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz {} \;
-	sed -i 's,^#PKGDEST=/home/packages,PKGDEST=/home/custompkgs,' /etc/makepkg.conf
-	sed -i 's,^#SRCPKGDEST=/home/srcpackages,SRCPKGDEST=/home/srcpackages,' /etc/makepkg.conf
-	sed -i 's,^#[custom],[custom],' /etc/pacman.conf
-	sed -i 's,^#SigLevel = Optional TrustAll,SigLevel = Optional TrustAll,' /etc/pacman.conf
-	sed -i 's,^#Server = file:///home/custompkgs,Server = file:///home/custompkgs,' /etc/pacman.conf
+ 	find /home/custompkgs -type f -name '*.pkg.tar.zst' -exec runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz {} \;
+	sed 's|^#PKGDEST=/home/packages|PKGDEST=/home/custompkgs|' --in-place /etc/makepkg.conf
+	sed 's|^#SRCPKGDEST=/home/srcpackages|SRCPKGDEST=/home/srcpackages|' --in-place /etc/makepkg.conf
+	sed 's|^#[custom]|[custom]|' --in-place /etc/pacman.conf
+	sed 's|^#SigLevel = Optional TrustAll|SigLevel = Optional TrustAll|' --in-place /etc/pacman.conf
+	sed 's|^#Server = file:///home/custompkgs|Server = file:///home/custompkgs|' --in-place /etc/pacman.conf
  	echo 'OPTIONS=(!debug)' > /etc/makepkg.conf.d/nodebug.conf
   	pacman --sync --refresh --sysupgrade --noconfirm
    	cat /etc/makepkg.conf
