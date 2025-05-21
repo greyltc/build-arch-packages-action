@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.15
 FROM archlinux:base-devel AS build
-COPY . /packages/
+COPY --from=packages . /packages/
 COPY builder.sh /root/
 COPY makepkg-url.sh /usr/bin/makepkg-url
 # --mount=type=cache seem to be broken in github actions (but this should work for local builds). see
