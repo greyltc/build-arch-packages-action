@@ -9,7 +9,8 @@ COPY makepkg-url.sh /usr/bin/makepkg-url
 # something like https://github.com/moby/buildkit/issues/1512#issuecomment-1319736671 would probably need to be deployed here to make caching work
 RUN \
   --mount=type=cache,target=/home/custompkgs,sharing=locked \
+  --mount=type=cache,target=/home/sources,sharing=locked \
   bash /root/builder.sh
 
 FROM scratch AS export
-COPY --from=build /out/* /
+COPY --from=build /out /

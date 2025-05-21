@@ -44,7 +44,7 @@ main() {
 	EOF
 	echo 'PKGDEST=/home/custompkgs' > /etc/makepkg.conf.d/pkgdest.conf
 	echo 'SRCPKGDEST=/home/srcpackages' > /etc/makepkg.conf.d/srcpkgdest.conf
- 	echo 'SRCDEST=/home/sources' > /etc/makepkg.conf.d/srcdest.conf
+	echo 'SRCDEST=/home/sources' > /etc/makepkg.conf.d/srcdest.conf
 	echo 'OPTIONS=(!debug)' > /etc/makepkg.conf.d/nodebug.conf
 
 	pacman --sync --refresh --sysupgrade --noconfirm
@@ -94,6 +94,8 @@ main() {
 	echo "ls cache C"
 	ls -al /home/custompkgs
 	ls -al /home/srcpackages
+	ls -al /out
+	ls -al /out/srccache
 	zcat /home/custompkgs/custom.db.tar.gz | tar -tv
 }
 
