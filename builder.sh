@@ -28,17 +28,25 @@ main() {
 	chown --recursive archie /packages /out /home/custompkgs /home/srcpackages
 
  	rm -rf /home/custompkgs/custom.db.tar.gz
+  	rm -rf /home/custompkgs/custom.db
+   	rm -rf /home/custompkgs/custom.files.tar.gz
+    	rm -rf /home/custompkgs/custom.files
 	runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz
  	find /home/custompkgs -type f -name '*.pkg.tar.zst' -exec runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz {} \;
-	sed 's|^#PKGDEST=/home/packages|PKGDEST=/home/custompkgs|' --in-place /etc/makepkg.conf
-	sed 's|^#SRCPKGDEST=/home/srcpackages|SRCPKGDEST=/home/srcpackages|' --in-place /etc/makepkg.conf
-	sed 's|^#[custom]|[custom]|' --in-place /etc/pacman.conf
-	sed 's|^#SigLevel = Optional TrustAll|SigLevel = Optional TrustAll|' --in-place /etc/pacman.conf
-	sed 's|^#Server = file:///home/custompkgs|Server = file:///home/custompkgs|' --in-place /etc/pacman.conf
+  	
+   	if ! grep 'custom.conf' /etc/pacman.conf then
+    		echo "Include = /etc/pacman.d/custom.conf" >> /etc/pacman.conf
+      	fi
+	cat <<-'EOF' > "/etc/pacman.d/custom.conf"
+		[custom]
+		SigLevel = Optional TrustA
+		Server = file:///home/custompkgs
+	EOF
+	echo 'PKGDEST=/home/custompkgs' > /etc/makepkg.conf.d/pkgdest.conf
+ 	echo 'SRCPKGDEST=/home/srcpackages' > /etc/makepkg.conf.d/srcpkgdest.conf
  	echo 'OPTIONS=(!debug)' > /etc/makepkg.conf.d/nodebug.conf
+  
   	pacman --sync --refresh --sysupgrade --noconfirm
-   	cat /etc/makepkg.conf
-   	cat /etc/pacman.conf
 
 	echo "ls cache A"
 	ls -al /home/custompkgs
