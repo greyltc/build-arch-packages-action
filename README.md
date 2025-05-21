@@ -31,7 +31,7 @@ then this action will build all packages in the repo, create a github release fo
 
 ### Local build
 You can use this repo to build your Arch Linux packages locally too, whereever docker-buildx can run:
-```
+```bash
 # starting from a directory containing package folders that each contain PKGBUILD files, etc.
 git clone https://github.com/greyltc/build-arch-packages-action.git
 docker buildx build --progress plain --target build --tag built --load --build-context packages=. build-arch-packages-action
