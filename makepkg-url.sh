@@ -6,32 +6,32 @@
 
 set -e
 
-TMPDIR=$(mktemp -p /var/tmp --directory)
+TMPDIR="$(mktemp -p /var/tmp --directory)"
 touch "${TMPDIR}/.deleteme"
 
 main() {
-  trap clean_up EXIT
+	trap clean_up EXIT
 
-  URL="$1"; shift
+	URL="$1"; shift
 
-  pushd "${TMPDIR}" > /dev/null
+	cd "${TMPDIR}"
 
-  curl --silent --remote-name "${URL}"
+	curl --silent --remote-name "${URL}"
 
-  makepkg --clean "$@"
+	makepkg --clean "$@"
 
-  popd > /dev/null
+	cd -
 }
 
 clean_up () {
-  CODE=$?
-  # echo "Cleaning up ${TMPDIR}"
-  if test -f "${TMPDIR}/.deleteme"; then
-    rm --force --recursive "${TMPDIR}"
-  else
-    echo "Not cleaning up."
-  fi
-  exit ${CODE}
+	CODE=$?
+	# echo "Cleaning up ${TMPDIR}"
+	if test -f "${TMPDIR}/.deleteme"; then
+		rm --force --recursive "${TMPDIR}"
+	else
+		echo "Not cleaning up."
+	fi
+	exit ${CODE}
 }
 
 main "$@"
