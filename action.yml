@@ -92,6 +92,7 @@ runs:
     # and we have https://github.com/moby/buildkit/issues/1512#issuecomment-1192878530
     # something like https://github.com/moby/buildkit/issues/1512#issuecomment-1319736671 would probably need to be deployed in the dockerfile
     - name: Move cache
+      shell: bash
       run: |
         ls -alh  /tmp/.buildx*
         rm -rf /tmp/.buildx-cache
