@@ -37,7 +37,9 @@ main() {
 	sed -i 's,^#Server = file:///home/custompkgs,Server = file:///home/custompkgs,' /etc/pacman.conf
  	echo 'OPTIONS=(!debug)' > /etc/makepkg.conf.d/nodebug.conf
   	pacman --sync --refresh --sysupgrade --noconfirm
-  
+   	cat /etc/makepkg.conf
+   	cat /etc/pacman.conf
+
 	echo "ls cache A"
 	ls -al /home/custompkgs
 	ls -al /home/srcpackages
