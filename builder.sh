@@ -39,7 +39,7 @@ main() {
       	fi
 	cat <<-'EOF' > "/etc/pacman.d/custom.conf"
 		[custom]
-		SigLevel = Optional TrustA
+		SigLevel = Optional TrustAll
 		Server = file:///home/custompkgs
 	EOF
 	echo 'PKGDEST=/home/custompkgs' > /etc/makepkg.conf.d/pkgdest.conf
