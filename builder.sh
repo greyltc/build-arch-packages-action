@@ -73,12 +73,9 @@ main() {
 			echo "building $(pwd) version $(getver)"
 
 			TMPDIR_SRCPKG=$(runuser -u archie -- mktemp -p /var/tmp --directory)
-   			TMPDIR_SRC=$(runuser -u archie -- mktemp -p /var/tmp --directory)
-			SRCPKGDEST="${TMPDIR_SRCPKG}" SRCDEST="${TMPDIR_SRC}" SRCDEST= runuser -w SRCDEST -w SRCPKGDEST -u archie -- makepkg --allsource  # --sign
+			SRCPKGDEST="${TMPDIR_SRCPKG}" runuser -w SRCPKGDEST -u archie -- makepkg --allsource  # --sign
 			cp ${TMPDIR_SRCPKG}/*.src.tar.gz /home/srcpackages/.
-   			cp ${TMPDIR_SRC}/* /home/sources
 			mv ${TMPDIR_SRCPKG}/*.src.tar.gz /out/.
-   			mv ${TMPDIR_SRC}/ /out/srccache/.
 			TMPDIR=$(runuser -u archie -- mktemp -p /var/tmp --directory)
 			PKGDEST="${TMPDIR}" runuser -w PKGDEST -u archie -- paru --upgrade --noconfirm
 			clean_orphans
@@ -91,6 +88,7 @@ main() {
 		fi
 		popd
 	done
+ 	mv /home/sources/* /out/srccache/.
 	git clean -ffxd || true
 
 	echo "ls cache C"
