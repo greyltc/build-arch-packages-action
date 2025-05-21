@@ -24,8 +24,8 @@ main() {
 	echo "archie ALL=(ALL) NOPASSWD: /usr/bin/pacman" > "/etc/sudoers.d/allow_archie_to_pacman"
 	echo "root ALL=(ALL) CWD=* ALL" > /etc/sudoers.d/permissive_root_Chdir_Spec
 
-	mkdir --parents /out /home/srcpackages
-	chown --recursive archie /packages /out /home/custompkgs /home/srcpackages
+	mkdir --parents /out/srccache /home/srcpackages /home/sources /home/custompkgs
+	chown --recursive archie /packages /out/srccache /home/custompkgs /home/srcpackages /home/sources
 
 	rm -rf /home/custompkgs/custom.db.tar.gz
 	rm -rf /home/custompkgs/custom.db
@@ -44,6 +44,7 @@ main() {
 	EOF
 	echo 'PKGDEST=/home/custompkgs' > /etc/makepkg.conf.d/pkgdest.conf
 	echo 'SRCPKGDEST=/home/srcpackages' > /etc/makepkg.conf.d/srcpkgdest.conf
+ 	echo 'SRCDEST=/home/sources' > /etc/makepkg.conf.d/srcdest.conf
 	echo 'OPTIONS=(!debug)' > /etc/makepkg.conf.d/nodebug.conf
 
 	pacman --sync --refresh --sysupgrade --noconfirm
@@ -71,10 +72,13 @@ main() {
 		if test ! -f DONTBUILD -a -f PKGBUILD; then
 			echo "building $(pwd) version $(getver)"
 
-			TMPDIR=$(runuser -u archie -- mktemp -p /var/tmp --directory)
-			SRCPKGDEST="${TMPDIR}" runuser -w SRCPKGDEST -u archie -- makepkg --allsource  # --sign
-			cp ${TMPDIR}/*.src.tar.gz /home/srcpackages/.
-			mv ${TMPDIR}/*.src.tar.gz /out/.
+			TMPDIR_SRCPKG=$(runuser -u archie -- mktemp -p /var/tmp --directory)
+   			TMPDIR_SRC=$(runuser -u archie -- mktemp -p /var/tmp --directory)
+			SRCPKGDEST="${TMPDIR_SRCPKG}" SRCDEST="${TMPDIR_SRC}" SRCDEST= runuser -w SRCDEST -w SRCPKGDEST -u archie -- makepkg --allsource  # --sign
+			cp ${TMPDIR_SRCPKG}/*.src.tar.gz /home/srcpackages/.
+   			cp ${TMPDIR_SRC}/* /home/sources
+			mv ${TMPDIR_SRCPKG}/*.src.tar.gz /out/.
+   			mv ${TMPDIR_SRC}/ /out/srccache/.
 			TMPDIR=$(runuser -u archie -- mktemp -p /var/tmp --directory)
 			PKGDEST="${TMPDIR}" runuser -w PKGDEST -u archie -- paru --upgrade --noconfirm
 			clean_orphans
