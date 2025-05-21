@@ -88,7 +88,7 @@ main() {
 		fi
 		popd
 	done
-	git clean -ffxd
+	git clean -ffxd || true
 
 	echo "ls cache C"
 	ls -al /home/custompkgs
