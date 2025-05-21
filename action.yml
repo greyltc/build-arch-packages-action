@@ -112,8 +112,8 @@ runs:
         ASSET_UL_URL=$(cat rel_resp.json | jq --raw-output '.upload_url' | sed "s|{?.*||g")
         ASSET_UL_URL="${ASSET_UL_URL}?name=asset"
         rm -rf out/provenance.json  # what's this?
-        for ASSET_FILE in out/*
-        do
+        do_asset_things() {
+          local ASSET_FILE="${1}"
           # upload asset
           echo "Uploading asset..."
           # https://docs.github.com/en/rest/reference/releases#upload-a-release-asset
@@ -143,4 +143,6 @@ runs:
             echo "Could not verify asset update"
             exit -1
           fi
-        done
+        }
+        export -f do_asset_things
+        find out -maxdepth 1 -type f -exec bash -c 'do_asset_things "$0"' "{}" \;
