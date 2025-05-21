@@ -34,7 +34,7 @@ main() {
 	runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz
  	find /home/custompkgs -type f -name '*.pkg.tar.zst' -exec runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz {} \;
   	
-   	if ! grep 'custom.conf' /etc/pacman.conf then
+   	if ! grep 'custom.conf' /etc/pacman.conf; then
     		echo "Include = /etc/pacman.d/custom.conf" >> /etc/pacman.conf
       	fi
 	cat <<-'EOF' > "/etc/pacman.d/custom.conf"
