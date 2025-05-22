@@ -124,41 +124,47 @@ runs:
           --output rel_resp.json
         echo "Release Done."
         ASSET_UL_URL=$(cat rel_resp.json | jq --raw-output '.upload_url' | sed "s|{?.*||g")
-        ASSET_UL_URL="${ASSET_UL_URL}?name=asset"
+        
         rm -rf out/provenance.json  # what's this?
         do_asset_things() {
           local ASSET_FILE="$(realpath "${1}")"
-          file "${ASSET_FILE}"
-          ls -alh "${ASSET_FILE}"
+          #file "${ASSET_FILE}"
+          #ls -alh "${ASSET_FILE}"
+          ASSET_NAME="$(basename ${ASSET_FILE})"
+          #ASSET_UL_URL="${ASSET_UL_URL}?name=asset"
+          ASSET_UL_URL="${ASSET_UL_URL}?name=${ASSET_NAME}"
+          
           # upload asset
           echo "Uploading asset: ${ASSET_FILE}"
           # https://docs.github.com/en/rest/reference/releases#upload-a-release-asset
-          curl --silent \
-            --url "${ASSET_UL_URL}" \
-            --header 'authorization: Bearer ${{ inputs.github-token }}' \
-            --header "Accept: application/vnd.github.v3+json" \
-            --header "Content-Type: $(file --brief --mime-type ${ASSET_FILE})" \
-            --data-binary @${ASSET_FILE} \
+          curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ inputs.github-token }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Content-Type: $(file --brief --mime-type ${ASSET_FILE})" \
+            "${ASSET_UL_URL}" \
+            --data-binary "@${ASSET_FILE}" \
             --output asset_resp.json
           ASSET_URL=$(cat asset_resp.json | jq --raw-output '.url')
           echo "Asset upload done."
 
           # update asset
-          ASSET_NAME="$(basename ${ASSET_FILE})"
-          echo "Updating asset ${ASSET_NAME}..."
-          jq -n --arg arg_name "${ASSET_NAME}" '{"name":$arg_name}' | curl --silent \
-            --request PATCH \
-            --url "${ASSET_URL}" \
-            --header 'authorization: Bearer ${{ inputs.github-token }}' \
-            --header "Accept: application/vnd.github.v3+json" \
-            --data @- \
-            --output asset_update.json
-          echo "Asset update done."
-          if test "$(cat asset_update.json | jq --raw-output '.name')"x != "${ASSET_NAME}"x
-          then
-            echo "Could not verify asset update"
-            exit -1
-          fi
+          
+          #echo "Updating asset ${ASSET_NAME}..."
+          #jq -n --arg arg_name "${ASSET_NAME}" '{"name":$arg_name}' | curl --silent \
+          #  --request PATCH \
+          #  --url "${ASSET_URL}" \
+          #  --header 'authorization: Bearer ${{ inputs.github-token }}' \
+          #  --header "Accept: application/vnd.github.v3+json" \
+          #  --data @- \
+          #  --output asset_update.json
+          #echo "Asset update done."
+          #if test "$(cat asset_update.json | jq --raw-output '.name')"x != "${ASSET_NAME}"x
+          #then
+          #  echo "Could not verify asset update"
+          #  exit -1
+          #fi
         }
         export -f do_asset_things
         find out -maxdepth 1 -type f,l -exec bash -c 'do_asset_things "$0"' "{}" \;
