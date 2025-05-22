@@ -25,6 +25,11 @@ runs:
         restore-keys: |
           ${{ runner.os }}-buildx-
 
+    - name: move cache
+      id: mc
+      shell: bash
+      run: mv out/cache /cache
+
     - name: Get current date
       id: date
       shell: bash
@@ -79,7 +84,7 @@ runs:
         context: ${{ github.action_path }}
         build-contexts: |
           packages=.
-          cache=out/cache
+          cache=/cache
         #cache-from: type=gha
         #cache-to: type=gha,mode=max
         #cache-from: type=local,src=/tmp/.buildx-cache
@@ -102,6 +107,7 @@ runs:
       if: github.event_name != 'pull_request'
       shell: bash
       run: |
+        ls -al out
         git tag -a "v${{ env.THIS_VERSTRING }}" -m "Build ${{ env.THIS_VERSTRING }}"
         git push -u origin $(git rev-parse --abbrev-ref HEAD) --tags
 
@@ -153,5 +159,4 @@ runs:
           fi
         }
         export -f do_asset_things
-        ls -al out
         find out -maxdepth 1 -type f,l -exec bash -c 'do_asset_things "$0"' "{}" \;
