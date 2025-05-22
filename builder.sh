@@ -3,112 +3,72 @@ set -e
 set -o pipefail
 
 main() {
+	mkdir --parents /out/cache/custom/{src,pkg} /out/cache/pkg /home/custompkgs
+	mv /out/cache/pkg/* /var/cache/pacman/pkg/. || true 
+	
 	pacman-key --init
 	pacman --sync --refresh --noconfirm archlinux-keyring
-	pacman --sync --refresh --sysupgrade --noconfirm git
+	pacman --sync --refresh --sysupgrade --noconfirm --needed git pacman-contrib
 	git config --global --add safe.directory /packages
 
-	echo "ls cache 0"
-	ls -al /home
-	if test -d /home/custompkgs; then
-		ls -al /home/custompkgs
-		if test -f /home/custompkgs/custom.db.tar.gz; then
-			zcat /home/custompkgs/custom.db.tar.gz | tar -tv
-		fi
-	fi
-	if test -d /home/srcpackages; then
-		ls -al /home/srcpackages
-	fi
-
 	useradd --create-home archie
+	chown --recursive archie /out /home/custompkgs /packages
 	echo "archie ALL=(ALL) NOPASSWD: /usr/bin/pacman" > "/etc/sudoers.d/allow_archie_to_pacman"
 	echo "root ALL=(ALL) CWD=* ALL" > /etc/sudoers.d/permissive_root_Chdir_Spec
 
-	mkdir --parents /out/srccache /home/srcpackages /home/sources /home/custompkgs
-	chown --recursive archie /packages /out/srccache /home/custompkgs /home/srcpackages /home/sources
-
-	rm -rf /home/custompkgs/custom.db.tar.gz
-	rm -rf /home/custompkgs/custom.db
-	rm -rf /home/custompkgs/custom.files.tar.gz
-	rm -rf /home/custompkgs/custom.files
+	rm -rf /home/custompkgs/*
 	runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz
-	find /home/custompkgs -type f -name '*.pkg.tar.zst' -exec runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz {} \;
+	find /out/cache/custom/pkg -type f -name '*.pkg.tar.zst' -exec runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz {} \;
 
 	if ! grep 'custom.conf' /etc/pacman.conf; then
-			echo "Include = /etc/pacman.d/custom.conf" >> /etc/pacman.conf
-		fi
+		echo "Include = /etc/pacman.d/custom.conf" >> /etc/pacman.conf
+	fi
 	cat <<-'EOF' > "/etc/pacman.d/custom.conf"
 		[custom]
 		SigLevel = Optional TrustAll
 		Server = file:///home/custompkgs
 	EOF
-	echo 'PKGDEST=/home/custompkgs' > /etc/makepkg.conf.d/pkgdest.conf
-	echo 'SRCPKGDEST=/home/srcpackages' > /etc/makepkg.conf.d/srcpkgdest.conf
-	echo 'SRCDEST=/home/sources' > /etc/makepkg.conf.d/srcdest.conf
+	echo 'PKGDEST=/out/cache/custom/pkg' > /etc/makepkg.conf.d/pkgdest.conf
+	echo 'SRCPKGDEST=/out' > /etc/makepkg.conf.d/srcpkgdest.conf
+	echo 'SRCDEST=/out/cache/custom/src' > /etc/makepkg.conf.d/srcdest.conf
 	echo 'OPTIONS=(!debug)' > /etc/makepkg.conf.d/nodebug.conf
 
 	pacman --sync --refresh --sysupgrade --noconfirm
 
-	echo "ls cache A"
-	ls -al /home/custompkgs
-	ls -al /home/srcpackages
-	zcat /home/custompkgs/custom.db.tar.gz | tar -tv
-
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru" --syncdeps --install --clean --noconfirm --rmdeps
-	clean_orphans
 
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/{PKGBUILD,aurutils.changelog,aurutils.install}?h=aurutils" --syncdeps --install --clean --noconfirm --rmdeps
-	clean_orphans
 
-	echo "ls cache B"
-	ls -al /home/custompkgs
-	ls -al /home/srcpackages
-	zcat /home/custompkgs/custom.db.tar.gz | tar -tv
-
-	cd /packages
-	find -name PKGBUILD -execdir sh -c 'runuser -u archie -- makepkg --printsrcinfo > .SRCINFO' \;
-	for d in */ ; do
-		pushd "${d}"
-		if test ! -f DONTBUILD -a -f PKGBUILD; then
-			echo "building $(pwd) version $(getver)"
-
-			TMPDIR_SRCPKG=$(runuser -u archie -- mktemp -p /var/tmp --directory)
-			SRCPKGDEST="${TMPDIR_SRCPKG}" runuser -w SRCPKGDEST -u archie -- makepkg --allsource  # --sign
-			cp ${TMPDIR_SRCPKG}/*.src.tar.gz /home/srcpackages/.
-			mv ${TMPDIR_SRCPKG}/*.src.tar.gz /out/.
-			TMPDIR=$(runuser -u archie -- mktemp -p /var/tmp --directory)
-			PKGDEST="${TMPDIR}" runuser -w PKGDEST -u archie -- paru --upgrade --noconfirm
-			clean_orphans
-			cp ${TMPDIR}/*.pkg.tar.zst /home/custompkgs/.
-			mv ${TMPDIR}/*.pkg.tar.zst /out/.
-			#mv *.pkg.tar.zst.sig /out/.
-			sudo --user=archie --chdir=~ bash -c "rm --recursive --force ~/.cargo"
+	tehbuild() {
+		cd "${1}"
+		if test -f PKGBUILD; then
+			if ! grep '^# do not build' PKGBUILD; then
+				echo "Building $(basename "$(pwd)")"
+				runuser -u archie -- makepkg --printsrcinfo > .SRCINFO
+				runuser -u archie -- makepkg --allsource  # --sign
+				rm .SRCINFO
+				runuser -u archie -- paru --upgrade --noconfirm
+				for f in $(runuser -u archie -- makepkg --packagelist); do
+					ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
+				done
+				#mv *.pkg.tar.zst.sig /out/.
+			else
+				echo "Skipping $(pwd) because # do not build in PKGBUILD"
+			fi
 		else
-			echo "Skipping ${d}"
+			echo "Skipping $(pwd) because no PKGBUILD"
 		fi
-		popd
-	done
- 	mv /home/sources/* /out/srccache/.
+	}
+	
+	export -f tehbuild
+	find /packages/ -maxdepth 1 -type d -exec bash -c 'tehbuild "${0}"' "{}" \;
 	git clean -ffxd || true
-
-	echo "ls cache C"
-	ls -al /home/custompkgs
-	ls -al /home/srcpackages
-	ls -al /out
-	ls -al /out/srccache
-	zcat /home/custompkgs/custom.db.tar.gz | tar -tv
-}
-
-getver() {
-		SRCINFO="$(runuser -u archie -- makepkg --printsrcinfo)"
-		pkgver=$(awk '$1 == "pkgver" { print $3}' <<< "${SRCINFO}")
-		pkgrel=$(awk '$1 == "pkgrel" { print $3}' <<< "${SRCINFO}")
-		epoch=$(awk '$1 == "epoch" { print $3}' <<< "${SRCINFO}")
-		if test -z "${epoch}"; then
-				printf ${pkgver}-${pkgrel}
-		else
-				printf ${epoch}:${pkgver}-${pkgrel}
-		fi
+	paccache -rk1
+	paccache -m /out/cache/pkg -k0
+	pacman -Scc
+	runuser -u archie -- paru -Sccd
+	clean_orphans
+	rm -rf /home/archie/.cargo
 }
 
 clean_orphans() {
