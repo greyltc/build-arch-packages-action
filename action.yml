@@ -135,7 +135,7 @@ runs:
           ASSET_UL_URL="${ASSET_UL_URL}?name=${ASSET_NAME}"
           
           # upload asset
-          echo "Uploading asset: ${ASSET_FILE}"
+          echo "Uploading asset ${ASSET_FILE} to ${ASSET_UL_URL}"
           # https://docs.github.com/en/rest/reference/releases#upload-a-release-asset
           curl -L \
             -X POST \
