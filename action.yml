@@ -20,7 +20,7 @@ runs:
       uses: actions/cache@v4
       id: buildx-cache
       with:
-        path: /tmp/.buildx-cache
+        path: {{ github.workspace }}/out/cache
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
@@ -71,11 +71,13 @@ runs:
         target: export
         outputs: type=local,dest=out
         context: ${{ github.action_path }}
-        build-contexts: packages=.
+        build-contexts:
+          - packages=.
+          - cache=out/cache
         #cache-from: type=gha
         #cache-to: type=gha,mode=max
-        cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+        #cache-from: type=local,src=/tmp/.buildx-cache
+        #cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
     # Temp fix
     # https://github.com/docker/build-push-action/issues/252
@@ -83,12 +85,12 @@ runs:
     # github actions caching here doesn't actually work in practice because the dockerfile uses --mount=type=cache
     # and we have https://github.com/moby/buildkit/issues/1512#issuecomment-1192878530
     # something like https://github.com/moby/buildkit/issues/1512#issuecomment-1319736671 would probably need to be deployed in the dockerfile
-    - name: Move cache
-      shell: bash
-      run: |
-        ls -alh  /tmp/.buildx*
-        rm -rf /tmp/.buildx-cache
-        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+    #- name: Move cache
+    #  shell: bash
+    #  run: |
+    #    ls -alh  /tmp/.buildx*
+    #    rm -rf /tmp/.buildx-cache
+    #    mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
     - name: Tag & Push
       if: github.event_name != 'pull_request'
