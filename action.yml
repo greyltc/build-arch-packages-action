@@ -60,6 +60,12 @@ runs:
     - name: Docker Setup Buildx
       uses: docker/setup-buildx-action@v3
 
+    - name: touch cache
+      id: tc
+      shell: bash
+      run: |
+        mkdir -p out/cache
+
     # https://github.com/marketplace/actions/build-and-push-docker-images
     # github actions caching here doesn't actually work in practice because the dockerfile uses --mount=type=cache
     # and we have https://github.com/moby/buildkit/issues/1512#issuecomment-1192878530
