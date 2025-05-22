@@ -4,28 +4,12 @@ set -o pipefail
 
 main() {
 	mkdir --parents /out/cache/custom/{src,pkg} /out/cache/pkg /home/custompkgs
-		mv /out/cache/pkg/* /var/cache/pacman/pkg/. || true 
+	mv /out/cache/pkg/* /var/cache/pacman/pkg/. || true 
 	
 	pacman-key --init
 	pacman --sync --refresh --noconfirm archlinux-keyring
 	pacman --sync --refresh --sysupgrade --noconfirm --needed git pacman-contrib
 	git config --global --add safe.directory /packages
-
-	echo "ls cache 0"
-	ls -al /home
-	if test -d /home/custompkgs; then
-		ls -al /home/custompkgs
-		if test -f /home/custompkgs/custom.db.tar.gz; then
-			zcat /home/custompkgs/custom.db.tar.gz | tar -tv
-		fi
-	fi
-	if test -d /home/srcpackages; then
-		ls -al /home/srcpackages
-	fi
-
-	if test -d /home/sources; then
-				ls -al /home/sources
-		fi
 
 	useradd --create-home archie
 	chown --recursive archie /out /home/custompkgs /packages
@@ -51,20 +35,9 @@ main() {
 
 	pacman --sync --refresh --sysupgrade --noconfirm
 
-	echo "ls cache A"
-	#ls -al /home/custompkgs
-	#ls -al /home/sources
-	zcat /home/custompkgs/custom.db.tar.gz | tar -tv
-
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru" --syncdeps --install --clean --noconfirm --rmdeps
 
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/{PKGBUILD,aurutils.changelog,aurutils.install}?h=aurutils" --syncdeps --install --clean --noconfirm --rmdeps
-
-	echo "ls cache B"
-	ls -al /out
-	#ls -al /home/custompkgs
-	#ls -al /home/sources
-	zcat /home/custompkgs/custom.db.tar.gz | tar -tv
 
 	tehbuild() {
 		cd "${1}"
@@ -76,7 +49,6 @@ main() {
 				rm .SRCINFO
 				runuser -u archie -- paru --upgrade --noconfirm
 				for f in $(runuser -u archie -- makepkg --packagelist); do
-					echo "it is ${f}"
 					ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
 				done
 				#mv *.pkg.tar.zst.sig /out/.
@@ -97,16 +69,6 @@ main() {
 	runuser -u archie -- paru -Sccd
 	clean_orphans
 	rm -rf /home/archie/.cargo
-
-	echo "ls cache C"
-	#ls -al /home/custompkgs
-	#ls -al /home/srcpackages
-	#ls -al /home/sources
-	ls -al /out
-	ls -al /out/cache/pkg
-	ls -al /out/cache/custom/src
-	ls -al /out/cache/custom/pkg
-	zcat /home/custompkgs/custom.db.tar.gz | tar -tv
 }
 
 clean_orphans() {
