@@ -72,8 +72,8 @@ runs:
         outputs: type=local,dest=out
         context: ${{ github.action_path }}
         build-contexts:
-          - packages=.
-          - cache=out/cache
+        - packages=.
+        - cache=out/cache
         #cache-from: type=gha
         #cache-to: type=gha,mode=max
         #cache-from: type=local,src=/tmp/.buildx-cache
