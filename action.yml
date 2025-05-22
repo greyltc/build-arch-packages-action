@@ -131,11 +131,12 @@ runs:
         rm -rf out/provenance.json  # what's this?
         do_asset_things() {
           local ASSET_FILE="$(realpath "${1}")"
+          local AUU="${2}"
           #file "${ASSET_FILE}"
           #ls -alh "${ASSET_FILE}"
           ASSET_NAME="$(basename ${ASSET_FILE})"
-          #ASSET_UL_URL="${ASSET_UL_URL}?name=asset"
-          ASSET_UL_URL="${ASSET_UL_URL}?name=${ASSET_NAME}"
+          #ASSET_UL_URL="${AUU}?name=asset"
+          ASSET_UL_URL="${AUU}?name=${ASSET_NAME}"
           
           # upload asset
           echo "Uploading asset ${ASSET_FILE} to ${ASSET_UL_URL}"
@@ -170,4 +171,4 @@ runs:
           #fi
         }
         export -f do_asset_things
-        find out -maxdepth 1 -type f,l -exec bash -c 'do_asset_things "$0"' "{}" \;
+        find out -maxdepth 1 -type f,l -exec bash -c 'do_asset_things "${0}" "${1}"' "{}" "${ASSET_UL_URL}" \;
