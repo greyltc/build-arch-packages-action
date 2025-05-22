@@ -127,9 +127,9 @@ runs:
         ASSET_UL_URL="${ASSET_UL_URL}?name=asset"
         rm -rf out/provenance.json  # what's this?
         do_asset_things() {
-          local ASSET_FILE="${1}"
+          local ASSET_FILE="$(realpath "${1}")"
           # upload asset
-          echo "Uploading asset..."
+          echo "Uploading asset: ${ASSET_FILE}"
           # https://docs.github.com/en/rest/reference/releases#upload-a-release-asset
           curl --silent \
             --url "${ASSET_UL_URL}" \
@@ -143,7 +143,7 @@ runs:
 
           # update asset
           ASSET_NAME="$(basename ${ASSET_FILE})"
-          echo "Updating asset..."
+          echo "Updating asset ${ASSET_NAME}..."
           jq -n --arg arg_name "${ASSET_NAME}" '{"name":$arg_name}' | curl --silent \
             --request PATCH \
             --url "${ASSET_URL}" \
