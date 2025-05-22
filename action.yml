@@ -20,7 +20,7 @@ runs:
       uses: actions/cache@v4
       id: buildx-cache
       with:
-        path: {{ github.workspace }}/out/cache
+        path: ${{ github.workspace }}/out/cache
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
