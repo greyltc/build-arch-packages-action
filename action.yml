@@ -87,22 +87,24 @@ runs:
         #cache-from: type=local,src=/tmp/.buildx-cache
         #cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
+    - name: Get assets
+      id: getass
+      shell: bash
+      run: echo "ASSETS=$( ls -p out | grep -v / | grep -v '.src.tar.gz' | sed 's,\.pkg\.tar\.zst,,' | tr '\n' ' ' )" >> $GITHUB_ENV
+
     - name: Tag & Push
       if: github.event_name != 'pull_request'
+      if: {{ env.ASSETS != 0 }}
       shell: bash
       run: |
         ls -al out
         git tag -a "v${{ env.THIS_VERSTRING }}" -m "Build ${{ env.THIS_VERSTRING }}"
         git push -u origin $(git rev-parse --abbrev-ref HEAD) --tags
 
-    - name: Get assets
-      id: getass
-      shell: bash
-      run: echo "ASSETS=$( ls -p out | grep -v / | grep -v '.src.tar.gz' | sed 's,\.pkg\.tar\.zst,,' | tr '\n' ' ' )" >> $GITHUB_ENV
-
     # https://docs.github.com/en/rest/reference/releases#create-a-release
     - name: Make release and upload assets
       if: github.event_name != 'pull_request'
+      if: {{ env.ASSETS != 0 }}
       shell: bash
       run: |
         echo "Creating release..."
