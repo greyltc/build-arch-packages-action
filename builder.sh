@@ -39,13 +39,16 @@ main() {
 
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/{PKGBUILD,aurutils.changelog,aurutils.install}?h=aurutils" --syncdeps --install --clean --noconfirm --rmdeps
 
+ 	echo "Cache is $(ls /out/cache/custom/pkg)"
+
 	tehbuild() {
 		cd "${1}"
 		if test -f PKGBUILD; then
 			if ! grep '^# do not build' PKGBUILD; then
 				echo "Considering $(basename "$(pwd)")"
 				for f in $(runuser -u archie -- makepkg --packagelist); do
-    					if test -f "/out/cache/custom/pkg/${f}"; then
+    					echo "Looking for ${f}"
+    					if test -f "${f}"; then
 	 					echo "We already had ${f}"
        						ls -al /out/cache/custom/pkg
        					else
