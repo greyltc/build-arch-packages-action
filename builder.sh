@@ -43,17 +43,24 @@ main() {
 		cd "${1}"
 		if test -f PKGBUILD; then
 			if ! grep '^# do not build' PKGBUILD; then
-				echo "Building $(basename "$(pwd)")"
-				runuser -u archie -- paru --upgrade --noconfirm
+				echo "Considering $(basename "$(pwd)")"
 				for f in $(runuser -u archie -- makepkg --packagelist); do
+    					do_build="false"
     					if find /out/cache/custom/pkg -name "${f}"; then
 	 					echo "We already had this package"
        						ls -al /out/cache/custom/pkg
        					else
-	    					ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
-	  					runuser -u archie -- makepkg --allsource  # --sign
+	    					do_build="true"
+
 	 				fi
 				done
+				if test "${do_build}" = "true"; then
+    					echo "Building $(basename "$(pwd)")"
+					runuser -u archie -- paru --upgrade --noconfirm
+					ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
+					runuser -u archie -- makepkg --allsource  # --sign
+     					echo "Done building $(basename "$(pwd)")"
+				fi
 				#mv *.pkg.tar.zst.sig /out/.
 			else
 				echo "Skipping $(pwd) because # do not build in PKGBUILD"
