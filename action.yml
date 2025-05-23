@@ -99,7 +99,7 @@ runs:
     - name: Get assets
       id: getass
       shell: bash
-      run: echo "ASSETS="$( ls -p | grep -v / | tr '\n' ' ' )"" >> $GITHUB_OUTPUT
+      run: echo "ASSETS="$( ls -p | grep -v / | tr '\n' ' ' )" >> $GITHUB_OUTPUT
 
     # https://docs.github.com/en/rest/reference/releases#create-a-release
     - name: Make release and upload assets
