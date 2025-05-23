@@ -66,8 +66,7 @@ runs:
     - name: touch cache
       id: tc
       shell: bash
-      run: |
-        mkdir -p out/cache
+      run: mkdir -p out/cache
 
     # https://github.com/marketplace/actions/build-and-push-docker-images
     # github actions caching here doesn't actually work in practice because the dockerfile uses --mount=type=cache
@@ -99,7 +98,7 @@ runs:
     - name: Get assets
       id: getass
       shell: bash
-      run: echo "ASSETS="$( ls -p | grep -v / | tr '\n' ' ' )" >> $GITHUB_OUTPUT
+      run: echo "ASSETS=$( ls -p out | grep -v / | tr '\n' ' ' )" >> $GITHUB_OUTPUT
 
     # https://docs.github.com/en/rest/reference/releases#create-a-release
     - name: Make release and upload assets
