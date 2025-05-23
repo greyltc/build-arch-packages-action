@@ -98,7 +98,7 @@ runs:
     - name: Get assets
       id: getass
       shell: bash
-      run: echo "ASSETS=$( ls -p out | grep -v / | grep -v '.src.tar.gz' | sed 's,-[^ ]*,,' | tr '\n' ' ' )" >> $GITHUB_ENV
+      run: echo "ASSETS=$( ls -p out | grep -v / | grep -v '.src.tar.gz' | sed 's,\.pkg\.tar\.zst,,' | tr '\n' ' ' )" >> $GITHUB_ENV
 
     # https://docs.github.com/en/rest/reference/releases#create-a-release
     - name: Make release and upload assets
