@@ -45,8 +45,8 @@ main() {
 			if ! grep '^# do not build' PKGBUILD; then
 				echo "Considering $(basename "$(pwd)")"
 				for f in $(runuser -u archie -- makepkg --packagelist); do
-    					if find /out/cache/custom/pkg -name "${f}"; then
-	 					echo "We already had this package"
+    					if test -f "${f}"; then
+	 					echo "We already had ${f}"
        						ls -al /out/cache/custom/pkg
        					else
 						echo "Building $(basename "$(pwd)")"
