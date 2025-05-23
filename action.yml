@@ -93,8 +93,7 @@ runs:
       run: echo "ASSETS=$( ls -p out | grep -v / | grep -v '.src.tar.gz' | sed 's,\.pkg\.tar\.zst,,' | tr '\n' ' ' )" >> $GITHUB_ENV
 
     - name: Tag & Push
-      if: github.event_name != 'pull_request'
-      if: {{ env.ASSETS != 0 }}
+      if: {{ github.event_name != 'pull_request' && env.ASSETS != 0 }}
       shell: bash
       run: |
         ls -al out
@@ -103,8 +102,7 @@ runs:
 
     # https://docs.github.com/en/rest/reference/releases#create-a-release
     - name: Make release and upload assets
-      if: github.event_name != 'pull_request'
-      if: {{ env.ASSETS != 0 }}
+      if: {{ github.event_name != 'pull_request' && env.ASSETS != 0 }}
       shell: bash
       run: |
         echo "Creating release..."
