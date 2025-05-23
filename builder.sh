@@ -44,12 +44,14 @@ main() {
 		if test -f PKGBUILD; then
 			if ! grep '^# do not build' PKGBUILD; then
 				echo "Building $(basename "$(pwd)")"
-				runuser -u archie -- makepkg --printsrcinfo > .SRCINFO
-				runuser -u archie -- makepkg --allsource  # --sign
-				rm .SRCINFO
 				runuser -u archie -- paru --upgrade --noconfirm
 				for f in $(runuser -u archie -- makepkg --packagelist); do
-					ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
+    					if find /out/cache/custom/pkg -name "${f}"; then
+	 					echo "We already had this package"
+       					else
+	    					ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
+	  					runuser -u archie -- makepkg --allsource  # --sign
+	 				fi
 				done
 				#mv *.pkg.tar.zst.sig /out/.
 			else
@@ -65,8 +67,8 @@ main() {
 	git clean -ffxd || true
 	paccache -rk1
 	paccache -m /out/cache/pkg -k0
-	pacman -Scc
-	runuser -u archie -- paru -Sccd
+	yes | pacman -Scc
+	yes | runuser -u archie -- paru -Sccd
 	clean_orphans
 	rm -rf /home/archie/.cargo
 }
