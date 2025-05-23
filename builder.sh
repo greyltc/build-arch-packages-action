@@ -51,7 +51,6 @@ main() {
        						ls -al /out/cache/custom/pkg
        					else
 	    					do_build="true"
-
 	 				fi
 				done
 				if test "${do_build}" = "true"; then
