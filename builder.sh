@@ -68,7 +68,7 @@ main() {
 	paccache -rk1
 	paccache -m /out/cache/pkg -k0
 	yes | pacman -Scc
-	yes | runuser -u archie -- paru -Sccd
+	yes | runuser -u archie -- paru -Sccd || true
 	clean_orphans
 	rm -rf /home/archie/.cargo
 }
