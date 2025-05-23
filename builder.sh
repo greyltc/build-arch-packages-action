@@ -65,7 +65,10 @@ main() {
 	export -f tehbuild
 	find /packages/ -maxdepth 1 -type d -exec bash -c 'tehbuild "${0}"' "{}" \;
 	git clean -ffxd || true
-	paccache -rk1
+	paccache --remove --keep 1
+ 	paccache --remove --keep 1 --cachedir /out/cache/custom/pkg
+  	# /out/cache/custom/src will grow unboundedly...just clear it every now and then with this?
+   	# rm -f /out/cache/custom/src/*
 	paccache -m /out/cache/pkg -k0
 	yes | pacman -Scc || true
 	yes | runuser -u archie -- paru -Sccd || true
