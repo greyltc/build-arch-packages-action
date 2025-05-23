@@ -93,7 +93,6 @@ runs:
       shell: bash
       run: |
         ls -al out
-        echo "ASSETS=$(ls -p out | grep -v / )" >> $GITHUB_ENV
         git tag -a "v${{ env.THIS_VERSTRING }}" -m "Build ${{ env.THIS_VERSTRING }}"
         git push -u origin $(git rev-parse --abbrev-ref HEAD) --tags
 
