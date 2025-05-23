@@ -48,6 +48,7 @@ main() {
 				for f in $(runuser -u archie -- makepkg --packagelist); do
     					if find /out/cache/custom/pkg -name "${f}"; then
 	 					echo "We already had this package"
+       						ls -al /out/cache/custom/pkg
        					else
 	    					ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
 	  					runuser -u archie -- makepkg --allsource  # --sign
