@@ -67,7 +67,7 @@ main() {
 	git clean -ffxd || true
 	paccache -rk1
 	paccache -m /out/cache/pkg -k0
-	yes | pacman -Scc
+	yes | pacman -Scc || true
 	yes | runuser -u archie -- paru -Sccd || true
 	clean_orphans
 	rm -rf /home/archie/.cargo
