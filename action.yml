@@ -27,10 +27,12 @@ runs:
       id: mc
       shell: bash
       run: |
+        bash <<'EOF'
         if test -d out/cache; then
           mv out/cache /tmp/some_cache
         else
           mkdir /tmp/some_cache
+        EOF
 
     - name: Get current date
       id: date
