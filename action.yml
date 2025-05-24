@@ -95,12 +95,15 @@ runs:
     - name: Get assets
       id: getass
       shell: bash
-      run: echo "ASSETS=$( ls -p out | grep -v / | grep -v '.src.tar.gz' | sed 's,\.pkg\.tar\.zst,,' | tr '\n' ' ' )" >> $GITHUB_ENV
+      run: |
+        rm -rf out/provenance.json  # what's this?
+        echo "ASSETS=$( ls -p out | grep -v / | grep -v '.src.tar.gz' | sed 's,\.pkg\.tar\.zst,,' | tr '\n' ' ' )" >> $GITHUB_ENV
 
     - name: Tag & Push
       if: ${{ github.event_name != 'pull_request' && env.ASSETS != 0 }}
       shell: bash
       run: |
+        echo "Assets is \"{{ env.ASSETS }}\""
         ls -al out
         git tag -a "v${{ env.THIS_VERSTRING }}" -m "Build ${{ env.THIS_VERSTRING }}"
         git push -u origin $(git rev-parse --abbrev-ref HEAD) --tags
