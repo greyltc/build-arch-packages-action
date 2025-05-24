@@ -26,7 +26,11 @@ runs:
     - name: move cache
       id: mc
       shell: bash
-      run: mv out/cache /tmp/some_cache
+      run: |
+        if test -d out/cache; then
+          mv out/cache /tmp/some_cache
+        else
+          mkdir /tmp/some_cache
 
     - name: Get current date
       id: date
