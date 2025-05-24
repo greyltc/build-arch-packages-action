@@ -39,21 +39,28 @@ main() {
 
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/{PKGBUILD,aurutils.changelog,aurutils.install}?h=aurutils" --syncdeps --install --clean --noconfirm --rmdeps
 
+ 	echo "Cache is $(ls /out/cache/custom/pkg)"
+
 	tehbuild() {
 		cd "${1}"
 		if test -f PKGBUILD; then
 			if ! grep '^# do not build' PKGBUILD; then
-				echo "Building $(basename "$(pwd)")"
-				runuser -u archie -- paru --upgrade --noconfirm
+				echo "Considering $(basename "$(pwd)")"
 				for f in $(runuser -u archie -- makepkg --packagelist); do
-    					if find /out/cache/custom/pkg -name "${f}"; then
-	 					echo "We already had this package"
+    					echo "Looking for ${f}"
+    					if test -f "${f}"; then
+	 					echo "We already had ${f}"
+       						ls -al /out/cache/custom/pkg
        					else
-	    					ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
-	  					runuser -u archie -- makepkg --allsource  # --sign
+						echo "Building $(basename "$(pwd)")"
+						runuser -u archie -- paru --upgrade --noconfirm
+						ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
+						runuser -u archie -- makepkg --allsource  # --sign
+      						#mv *.pkg.tar.zst.sig /out/.
+						echo "Done building $(basename "$(pwd)")"
+      						break
 	 				fi
 				done
-				#mv *.pkg.tar.zst.sig /out/.
 			else
 				echo "Skipping $(pwd) because # do not build in PKGBUILD"
 			fi
@@ -65,10 +72,13 @@ main() {
 	export -f tehbuild
 	find /packages/ -maxdepth 1 -type d -exec bash -c 'tehbuild "${0}"' "{}" \;
 	git clean -ffxd || true
-	paccache -rk1
+	paccache --remove --keep 1
+ 	paccache --remove --keep 1 --min-mtime "1 day ago" --cachedir /out/cache/custom/pkg
+  	# /out/cache/custom/src will grow unboundedly...just clear it every now and then with this?
+   	# rm -f /out/cache/custom/src/*
 	paccache -m /out/cache/pkg -k0
-	yes | pacman -Scc
-	yes | runuser -u archie -- paru -Sccd
+	yes | pacman -Scc || true
+	yes | runuser -u archie -- paru -Sccd || true
 	clean_orphans
 	rm -rf /home/archie/.cargo
 }
