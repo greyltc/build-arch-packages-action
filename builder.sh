@@ -13,7 +13,7 @@ main() {
 
  	pacman --sync --refresh --sysupgrade --noconfirm --needed mkosi
   	cd /tmp
-   	mkost build
+   	mkosi build
     	cd -
 
 	useradd --create-home archie
