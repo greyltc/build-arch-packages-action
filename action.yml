@@ -144,7 +144,7 @@ runs:
       if: ${{ github.event_name != 'pull_request' && env.ASSETS != 0 }}
       shell: bash
       run: |
-        echo "Assets is \"{{ env.ASSETS }}\""
+        echo "Assets is \"${{ env.ASSETS }}\""
         ls -al out
         git tag -a "v${{ env.THIS_VERSTRING }}" -m "Build ${{ env.THIS_VERSTRING }}"
         git push -u origin $(git rev-parse --abbrev-ref HEAD) --tags
