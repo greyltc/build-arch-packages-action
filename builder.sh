@@ -65,6 +65,7 @@ main() {
        						else
 	     						echo "ERROR: Couldn't find ${f} after building it."
 	     						exit -44
+	    					fi
       						break
 	 				fi
 				done
