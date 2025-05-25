@@ -20,6 +20,7 @@ runs:
       run: |
         sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
         sudo aa-teardown || true
+        sudo sysctl -w kernel.unprivileged_userns_clone=1
         #echo 1 > /proc/sys/kernel/unprivileged_userns_clone
 
     - id: disable-apparmor
@@ -27,11 +28,11 @@ runs:
       shell: bash -Eueo pipefail -x {0}
       run: sudo systemctl disable --now apparmor.service
 
-    - name: Install Podman
-      shell: bash
-      run: |
-        apt-get install -y mkosi
-        mkosi build
+    #- name: Install Podman
+    #  shell: bash
+    #  run: |
+    #    apt-get install -y mkosi
+    #    mkosi build
 
     # https://github.com/marketplace/actions/checkout
     - name: Checkout repo
