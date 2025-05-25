@@ -36,8 +36,10 @@ main() {
 	pacman --sync --refresh --sysupgrade --noconfirm
 
 	# bootstrap
+ 	echo "Bootstrapping paru"
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru" --syncdeps --install --clean --noconfirm --rmdeps
-	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/{PKGBUILD,aurutils.changelog,aurutils.install}?h=aurutils" --syncdeps --install --clean --noconfirm --rmdeps
+	echo "Bootstrapping aurutils"
+ 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/{PKGBUILD,aurutils.changelog,aurutils.install}?h=aurutils" --syncdeps --install --clean --noconfirm --rmdeps
 
  	echo "Cache is $(ls /out/cache/custom/pkg)"
 
