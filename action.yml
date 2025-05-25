@@ -111,6 +111,7 @@ runs:
     - name: Docker Setup Buildx
       uses: docker/setup-buildx-action@v3
       with:
+        driver: docker
         buildkitd-flags: '--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host'
 
     # https://github.com/marketplace/actions/build-and-push-docker-images
@@ -121,7 +122,6 @@ runs:
       id: build
       uses: docker/build-push-action@v6
       with:
-        driver: docker
         target: export
         allow: security.insecure
         outputs: type=local,dest=out
