@@ -60,7 +60,11 @@ main() {
 						ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
 						runuser -u archie -- makepkg --allsource  # --sign
       						#mv *.pkg.tar.zst.sig /out/.
-						echo "Done building $(basename "$(pwd)")"
+	    					if test -f "${f}"; then
+							echo "Done building $(basename "$(pwd)")"
+       						else
+	     						echo "ERROR: Couldn't find ${f} after building it."
+	     						exit -44
       						break
 	 				fi
 				done
@@ -71,8 +75,8 @@ main() {
 			echo "Skipping $(pwd) because no PKGBUILD"
 		fi
 	}
-	
 	export -f tehbuild
+ 
 	find /packages/ -maxdepth 1 -type d -exec bash -c 'tehbuild "${0}"' "{}" \;
 	git clean -ffxd || true
 	paccache --remove --keep 1
