@@ -42,7 +42,6 @@ main() {
  	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/{PKGBUILD,aurutils.changelog,aurutils.install}?h=aurutils" --syncdeps --install --clean --noconfirm --rmdeps
 
  	echo "Cache is $(ls /out/cache/custom/pkg)"
-  	sysctl kernel.unprivileged_userns_clone
 
 	tehbuild() {
 		cd "${1}"
