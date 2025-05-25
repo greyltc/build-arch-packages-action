@@ -8,6 +8,22 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # the next two steps disable ubuntu's apparmor to solve permissions issues with mkosi later
+    # from https://github.com/cisagov/action-disable-apparmor/blob/f4cba6ab9bea9ae0829a1676080d5d75cd37f381/action.yml#L20-L32
+    - id: unload-apparmor-profiles
+      name: Unload all AppArmor profiles
+      # The || true is currently necessary because of a bug in
+      # aa-teardown.  See
+      # https://bugs.launchpad.net/ubuntu/+source/apparmor/+bug/2093797
+      # for more details.
+      run: sudo aa-teardown || true
+      shell: bash -Eueo pipefail -x {0}
+
+    - id: disable-apparmor
+      name: Disable and stop AppArmor systemd service
+      run: sudo systemctl disable --now apparmor.service
+      shell: bash -Eueo pipefail -x {0}
+
     # https://github.com/marketplace/actions/checkout
     - name: Checkout repo
       uses: actions/checkout@v4
