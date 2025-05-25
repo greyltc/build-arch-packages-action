@@ -33,6 +33,13 @@ runs:
           mkdir /tmp/some_cache
         fi
 
+    # clear the cache if it was a manual run
+    - name: bust cache
+      id: bc
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      shell: bash
+      run: rm -rf /tmp/some_cache/*
+
     - name: Get current date
       id: date
       shell: bash
