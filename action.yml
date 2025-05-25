@@ -27,8 +27,11 @@ runs:
       shell: bash -Eueo pipefail -x {0}
       run: sudo systemctl disable --now apparmor.service
 
-    #- name: Install Podman
-    #  run: sudo apt-get install -y podman
+    - name: Install Podman
+      shell: bash
+      run: |
+        apt-get install -y mkosi
+        mkosi build
 
     # https://github.com/marketplace/actions/checkout
     - name: Checkout repo
