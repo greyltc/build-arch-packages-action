@@ -71,14 +71,14 @@ runs:
         git add . :!bot_info.json
         git commit -m "set build version ${{ env.THIS_VERSTRING }}"
 
-    # https://github.com/marketplace/actions/docker-setup-buildx
-    - name: Docker Setup Buildx
-      uses: docker/setup-buildx-action@v3
-
     - name: touch cache
       id: tc
       shell: bash
       run: mkdir -p out/cache
+
+    # https://github.com/marketplace/actions/docker-setup-buildx
+    - name: Docker Setup Buildx
+      uses: docker/setup-buildx-action@v3
 
     # https://github.com/marketplace/actions/build-and-push-docker-images
     # github actions caching here doesn't actually work in practice because the dockerfile uses --mount=type=cache
@@ -89,6 +89,7 @@ runs:
       uses: docker/build-push-action@v6
       with:
         target: export
+        allow: security.insecure
         outputs: type=local,dest=out
         context: ${{ github.action_path }}
         build-contexts: |
