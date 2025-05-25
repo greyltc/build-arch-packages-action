@@ -27,12 +27,12 @@ runs:
       shell: bash -Eueo pipefail -x {0}
       run: sudo systemctl disable --now apparmor.service
 
-    - name: Install Podman
-      shell: bash
-      run: |
-        sudo apt-get install -y mkosi systemd-ukify
-        cd /tmp
-        mkosi build
+    #- name: Install Podman
+    #  shell: bash
+    #  run: |
+    #    sudo apt-get install -y mkosi systemd-ukify
+    #    cd /tmp
+    #    mkosi build
 
     # https://github.com/marketplace/actions/checkout
     - name: Checkout repo
@@ -121,6 +121,7 @@ runs:
       id: build
       uses: docker/build-push-action@v6
       with:
+        driver: docker
         target: export
         allow: security.insecure
         outputs: type=local,dest=out
