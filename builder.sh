@@ -57,11 +57,11 @@ main() {
        					else
 						echo "Building $(basename "$(pwd)")"
 						runuser -u archie -- paru --upgrade --noconfirm
-						ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
-						runuser -u archie -- makepkg --allsource  # --sign
-      						#mv *.pkg.tar.zst.sig /out/.
 	    					if test -f "${f}"; then
 							echo "Done building $(basename "$(pwd)")"
+	       						ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
+							runuser -u archie -- makepkg --allsource  # --sign
+	      						#mv *.pkg.tar.zst.sig /out/.
        						else
 	     						echo "ERROR: Couldn't find ${f} after building it."
 	     						exit -44
