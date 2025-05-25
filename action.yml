@@ -16,13 +16,16 @@ runs:
       # aa-teardown.  See
       # https://bugs.launchpad.net/ubuntu/+source/apparmor/+bug/2093797
       # for more details.
-      run: sudo aa-teardown || true
       shell: bash -Eueo pipefail -x {0}
+      run: |
+        sudo aa-teardown || true
+        echo 1 > /proc/sys/kernel/unprivileged_userns_clone
+      
 
     - id: disable-apparmor
       name: Disable and stop AppArmor systemd service
-      run: sudo systemctl disable --now apparmor.service
       shell: bash -Eueo pipefail -x {0}
+      run: sudo systemctl disable --now apparmor.service
 
     # https://github.com/marketplace/actions/checkout
     - name: Checkout repo
