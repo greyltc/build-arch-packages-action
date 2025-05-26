@@ -48,7 +48,7 @@ main() {
 		cd "${1}"
 		if test -f PKGBUILD; then
 			if ! grep '^# do not build' PKGBUILD; then
-   				if ! -f /tmp/fail; then
+   				if test ! -f /tmp/fail; then
 				echo "Considering $(basename "$(pwd)")"
 					for f in $(runuser -u archie -- makepkg --packagelist); do
 	    					echo "Looking for ${f}"
@@ -82,7 +82,7 @@ main() {
 	export -f tehbuildloop
  
 	find /packages/ -maxdepth 1 -type d -exec bash -c 'tehbuildloop "${0}"' "{}" \;
- 	if -f /tmp/fail; then
+ 	if test -f /tmp/fail; then
   		echo "ERROR: Couldn't find ${f} after building it."
     		exit -44
       	fi
