@@ -44,31 +44,34 @@ main() {
  	echo "Cache is $(ls /out/cache/custom/pkg)"
   	#echo 1 > /proc/sys/kernel/unprivileged_userns_clone
 
-	tehbuild() {
+	tehbuildloop() {
 		cd "${1}"
 		if test -f PKGBUILD; then
 			if ! grep '^# do not build' PKGBUILD; then
+   				if ! -f /tmp/fail; then
 				echo "Considering $(basename "$(pwd)")"
-				for f in $(runuser -u archie -- makepkg --packagelist); do
-    					echo "Looking for ${f}"
-    					if test -f "${f}"; then
-	 					echo "We already had ${f}"
-       						ls -al /out/cache/custom/pkg
-       					else
-						echo "Building $(basename "$(pwd)")"
-						runuser -u archie -- paru --upgrade --noconfirm
+					for f in $(runuser -u archie -- makepkg --packagelist); do
+	    					echo "Looking for ${f}"
 	    					if test -f "${f}"; then
-							echo "Done building $(basename "$(pwd)")"
-	       						ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
-							runuser -u archie -- makepkg --allsource  # --sign
-	      						#mv *.pkg.tar.zst.sig /out/.
-       						else
-	     						echo "ERROR: Couldn't find ${f} after building it."
-	     						exit -44
-	    					fi
-      						break
-	 				fi
-				done
+		 					echo "We already had ${f}"
+	       						ls -al /out/cache/custom/pkg
+	       					else
+							echo "Building $(basename "$(pwd)")"
+							runuser -u archie -- paru --upgrade --noconfirm
+		    					if test -f "${f}"; then
+								echo "Done building $(basename "$(pwd)")"
+		       						ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
+								runuser -u archie -- makepkg --allsource  # --sign
+		      						#mv *.pkg.tar.zst.sig /out/.
+	       						else
+		     						touch /tmp/fail
+		    					fi
+	      						break
+		 				fi
+					done
+     				else
+					echo "Skipping $(pwd) because of precious failure"
+  				fi
 			else
 				echo "Skipping $(pwd) because # do not build in PKGBUILD"
 			fi
@@ -76,9 +79,14 @@ main() {
 			echo "Skipping $(pwd) because no PKGBUILD"
 		fi
 	}
-	export -f tehbuild
+	export -f tehbuildloop
  
-	find /packages/ -maxdepth 1 -type d -exec bash -c 'tehbuild "${0}"' "{}" \;
+	find /packages/ -maxdepth 1 -type d -exec bash -c 'tehbuildloop "${0}"' "{}" \;
+ 	if -f /tmp/fail; then
+  		echo "ERROR: Couldn't find ${f} after building it."
+    		exit -44
+      	fi
+
 	git clean -ffxd || true
 	paccache --remove --keep 1
  	paccache --remove --keep 1 --min-mtime "1 day ago" --cachedir /out/cache/custom/pkg
