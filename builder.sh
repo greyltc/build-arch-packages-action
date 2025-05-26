@@ -114,6 +114,7 @@ main() {
 	yes | runuser -u archie -- paru -Sccd || true
 	clean_orphans
 	rm -rf /home/archie/.cargo
+ 	echo "/out is:"
  	tree /out
 }
 
