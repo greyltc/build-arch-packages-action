@@ -11,9 +11,11 @@ main() {
 	pacman --sync --refresh --sysupgrade --noconfirm --needed git pacman-contrib
 	git config --global --add safe.directory /packages
 
+	
  	pacman -Syu mkosi systemd-ukify
   	mkdir /dir
-   	cd dir
+   	cd /dir
+    	echo "build"
     	mkosi build
 
 	useradd --create-home archie
