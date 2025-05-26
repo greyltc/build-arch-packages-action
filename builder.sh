@@ -12,6 +12,7 @@ main() {
 	git config --global --add safe.directory /packages
 
 	echo "root:200000:65536" >> /etc/subuid
+ 	echo "root:200000:65536" >> /etc/subgid
 	echo "syu"
  	pacman --sync --refresh --sysupgrade --noconfirm mkosi systemd-ukify
   	mkdir /dir
