@@ -67,13 +67,6 @@ main() {
 	       						ls -al /out/cache/custom/pkg
 	       					else
 							echo "Building $(basename "$(pwd)")"
-       							#if test "$(basename "$(pwd)")" = "alarm_image_pi5"; then
-	      						#	#runuser -u archie -- paru -Syu --needed --noconfirm archlinuxarm-keyring btrfs-progs cpio f2fs-tools dosfstools erofs-utils mtools squashfs-tools pixz
-	      						#	#makepkg --asroot -Cfi
-	      						#	runuser -u archie -- paru --upgrade --noconfirm
-	      						#else
-							#	runuser -u archie -- paru --upgrade --noconfirm
-							#fi
        							runuser -u archie -- paru --upgrade --noconfirm
 		    					if test -f "${f}"; then
 								echo "Done building $(basename "$(pwd)")"
