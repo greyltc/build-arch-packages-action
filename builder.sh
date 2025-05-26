@@ -80,7 +80,7 @@ main() {
 	       					else
 							echo "Building $(basename "$(pwd)")"
        							if test "$(basename "$(pwd)")" = "alarm_image_pi5"; then
-	      							paru -Syu --needed --noconfirm archlinuxarm-keyring btrfs-progs cpio f2fs-tools dosfstools erofs-utils mtools squashfs-tools
+	      							paru -Syu --needed --noconfirm archlinuxarm-keyring btrfs-progs cpio f2fs-tools dosfstools erofs-utils mtools squashfs-tools pixz
 	      							makepkg --asroot -Cfi
 	      						else
 								runuser -u archie -- paru --upgrade --noconfirm
