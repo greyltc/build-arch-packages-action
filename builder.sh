@@ -46,6 +46,7 @@ main() {
 	pacman --sync --refresh --sysupgrade --noconfirm
 
 	# bootstrap
+ 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/{PKGBUILD,fakeroot.install}?h=fakeroot-tcp" --syncdeps --install --clean --noconfirm --rmdeps
  	echo "Bootstrapping paru"
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru" --syncdeps --install --clean --noconfirm --rmdeps
 	echo "Bootstrapping aurutils"
