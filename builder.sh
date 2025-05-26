@@ -11,14 +11,24 @@ main() {
 	pacman --sync --refresh --sysupgrade --noconfirm --needed git pacman-contrib
 	git config --global --add safe.directory /packages
 
+ 	sed 's,exit $E_ROOT,#exit $E_ROOT,' --in-place /usr/bin/makepkg
+  	sed "s,'verifysource' 'version','verifysource' 'version' 'asroot'," --in-place /usr/bin/makepkg
+
+   	cat /usr/bin/makepkg
+
 	echo "root:200000:65536" >> /etc/subuid
  	echo "root:200000:65536" >> /etc/subgid
 	echo "syu"
- 	pacman --sync --refresh --sysupgrade --noconfirm mkosi systemd-ukify sudo
+ 	pacman --sync --refresh --sysupgrade --noconfirm mkosi systemd-ukify sudo opendoas
+  	echo "permit nopass :archie as root cmd /usr/bin/mkosi" > /etc/doas.conf
+   	
+   	chown -c root:root /etc/doas.conf
+    	chmod -c 0400 /etc/doas.conf
+     	if doas -C /etc/doas.conf; then echo "config ok"; else echo "config error"; fi
   	mkdir /dir
    	cd /dir
     	echo "build"
-    	unshare  --map-auto  --map-current-user  --setuid 0 --setgid 0 mkosi build
+    	unshare --map-auto --map-current-user --setuid 0 --setgid 0 mkosi build
 
 	useradd --create-home archie
 	chown --recursive archie /out /packages
@@ -69,7 +79,11 @@ main() {
 	       						ls -al /out/cache/custom/pkg
 	       					else
 							echo "Building $(basename "$(pwd)")"
-							runuser -u archie -- paru --upgrade --noconfirm
+       							if test "$(basename "$(pwd)")" = "alarm_image_pi5"; then
+	      							makepkg --asroot -Cfi
+	      						else
+								runuser -u archie -- paru --upgrade --noconfirm
+							fi
 		    					if test -f "${f}"; then
 								echo "Done building $(basename "$(pwd)")"
 		       						ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
