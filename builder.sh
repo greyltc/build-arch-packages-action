@@ -11,11 +11,6 @@ main() {
 	pacman --sync --refresh --sysupgrade --noconfirm --needed git pacman-contrib
 	git config --global --add safe.directory /packages
 
- 	pacman --sync --refresh --sysupgrade --noconfirm --needed mkosi
-  	cd /tmp
-   	mkosi build
-    	cd -
-
 	useradd --create-home archie
 	chown --recursive archie /out /home/custompkgs /packages
 	echo "archie ALL=(ALL) NOPASSWD: /usr/bin/pacman" > "/etc/sudoers.d/allow_archie_to_pacman"
@@ -28,7 +23,7 @@ main() {
 	if ! grep 'custom.conf' /etc/pacman.conf; then
 		echo "Include = /etc/pacman.d/custom.conf" >> /etc/pacman.conf
 	fi
-	cat <<-'EOF' > "/etc/pacman.d/custom.conf"
+	cat <<- 'EOF' > /etc/pacman.d/custom.conf
 		[custom]
 		SigLevel = Optional TrustAll
 		Server = file:///home/custompkgs
