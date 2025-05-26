@@ -8,27 +8,16 @@ main() {
 	
 	pacman-key --init
 	pacman --sync --refresh --noconfirm archlinux-keyring
-	pacman --sync --refresh --sysupgrade --noconfirm --needed git pacman-contrib
+	pacman --sync --refresh --sysupgrade --noconfirm --needed git pacman-contrib opendoas
 	git config --global --add safe.directory /packages
 
+	# makepkg hack to run as root
  	sed 's,exit $E_ROOT,#exit $E_ROOT,' --in-place /usr/bin/makepkg
   	sed "s,'verifysource' 'version','verifysource' 'version' 'asroot'," --in-place /usr/bin/makepkg
 
-   	cat /usr/bin/makepkg
-
-	echo "root:200000:65536" >> /etc/subuid
- 	echo "root:200000:65536" >> /etc/subgid
-	echo "syu"
- 	pacman --sync --refresh --sysupgrade --noconfirm mkosi systemd-ukify sudo opendoas
   	echo "permit nopass :archie as root cmd /usr/bin/mkosi" > /etc/doas.conf
-   	
    	chown -c root:root /etc/doas.conf
     	chmod -c 0400 /etc/doas.conf
-     	if doas -C /etc/doas.conf; then echo "config ok"; else echo "config error"; fi
-  	mkdir /dir
-   	cd /dir
-    	echo "build"
-    	unshare --map-auto --map-current-user --setuid 0 --setgid 0 mkosi build
 
 	useradd --create-home archie
 	chown --recursive archie /out /packages
@@ -56,8 +45,6 @@ main() {
 	pacman --sync --refresh --sysupgrade --noconfirm
 
 	# bootstrap
- 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/{PKGBUILD,fakeroot.install}?h=fakeroot-tcp" --syncdeps --clean --noconfirm --rmdeps
-  	yes | pacman -U /out/cache/custom/pkg/fakeroot* || true
  	echo "Bootstrapping paru"
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru" --syncdeps --install --clean --noconfirm --rmdeps
 	echo "Bootstrapping aurutils"
@@ -80,8 +67,9 @@ main() {
 	       					else
 							echo "Building $(basename "$(pwd)")"
        							if test "$(basename "$(pwd)")" = "alarm_image_pi5"; then
-	      							runuser -u archie -- paru -Syu --needed --noconfirm archlinuxarm-keyring btrfs-progs cpio f2fs-tools dosfstools erofs-utils mtools squashfs-tools pixz
-	      							makepkg --asroot -Cfi
+	      							#runuser -u archie -- paru -Syu --needed --noconfirm archlinuxarm-keyring btrfs-progs cpio f2fs-tools dosfstools erofs-utils mtools squashfs-tools pixz
+	      							#makepkg --asroot -Cfi
+	      							runuser -u archie -- paru --upgrade --noconfirm
 	      						else
 								runuser -u archie -- paru --upgrade --noconfirm
 							fi
