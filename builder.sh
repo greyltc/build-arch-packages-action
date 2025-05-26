@@ -11,8 +11,8 @@ main() {
 	pacman --sync --refresh --sysupgrade --noconfirm --needed git pacman-contrib
 	git config --global --add safe.directory /packages
 
-	
- 	pacman -Syu mkosi systemd-ukify
+	echo "syu"
+ 	pacman -Syu mkosi
   	mkdir /dir
    	cd /dir
     	echo "build"
