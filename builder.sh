@@ -12,7 +12,7 @@ main() {
 	git config --global --add safe.directory /packages
 
 	echo "syu"
- 	pacman -Syu mkosi
+ 	pacman --sync --refresh --sysupgrade --noconfirm mkosi systemd-ukify
   	mkdir /dir
    	cd /dir
     	echo "build"
