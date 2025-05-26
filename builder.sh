@@ -16,7 +16,7 @@ main() {
   	mkdir /dir
    	cd /dir
     	echo "build"
-    	mkosi build
+    	unshare  --map-auto  --map-current-user  --setuid 0 --setgid 0 mkosi build
 
 	useradd --create-home archie
 	chown --recursive archie /out /packages
