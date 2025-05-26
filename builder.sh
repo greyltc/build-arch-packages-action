@@ -15,7 +15,7 @@ main() {
  	sed 's,exit $E_ROOT,#exit $E_ROOT,' --in-place /usr/bin/makepkg
   	sed "s,'verifysource' 'version','verifysource' 'version' 'asroot'," --in-place /usr/bin/makepkg
 
-  	echo "permit nopass :archie as root cmd /usr/bin/mkosi" > /etc/doas.conf
+  	echo "permit nopass :archie as root" > /etc/doas.conf
    	chown -c root:root /etc/doas.conf
     	chmod -c 0400 /etc/doas.conf
 
