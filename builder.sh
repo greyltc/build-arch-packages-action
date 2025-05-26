@@ -3,8 +3,8 @@ set -e
 set -o pipefail
 
 main() {
-	mkdir --parents /out/cache/custom/{src,pkg} /out/cache/pkg /home/custompkgs
-	mv /out/cache/pkg/* /var/cache/pacman/pkg/. || true 
+	mkdir --parents /out/cache/custom/{src,pkg} /out/cache/pkg
+	mv /out/cache/pkg/* /var/cache/pacman/pkg/. || true
 	
 	pacman-key --init
 	pacman --sync --refresh --noconfirm archlinux-keyring
@@ -12,13 +12,14 @@ main() {
 	git config --global --add safe.directory /packages
 
 	useradd --create-home archie
-	chown --recursive archie /out /home/custompkgs /packages
+	chown --recursive archie /out /packages
 	echo "archie ALL=(ALL) NOPASSWD: /usr/bin/pacman" > "/etc/sudoers.d/allow_archie_to_pacman"
 	echo "root ALL=(ALL) CWD=* ALL" > /etc/sudoers.d/permissive_root_Chdir_Spec
 
-	rm -rf /home/custompkgs/*
-	runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz
-	find /out/cache/custom/pkg -type f -name '*.pkg.tar.zst' -exec runuser -u archie -- repo-add /home/custompkgs/custom.db.tar.gz {} \;
+	if test ! -f /out/cache/custom/pkg/custom.db.tar.gz; then
+		runuser -u archie -- repo-add --new /out/cache/custom/pkg/custom.db.tar.gz
+  	fi
+	find /out/cache/custom/pkg -type f -name '*.pkg.tar.zst' -exec runuser -u archie -- repo-add --new /out/cache/custom/pkg/custom.db.tar.gz {} \;
 
 	if ! grep 'custom.conf' /etc/pacman.conf; then
 		echo "Include = /etc/pacman.d/custom.conf" >> /etc/pacman.conf
@@ -26,7 +27,7 @@ main() {
 	cat <<- 'EOF' > /etc/pacman.d/custom.conf
 		[custom]
 		SigLevel = Optional TrustAll
-		Server = file:///home/custompkgs
+		Server = file:///out/cache/custom/pkg
 	EOF
 	echo 'PKGDEST=/out/cache/custom/pkg' > /etc/makepkg.conf.d/pkgdest.conf
 	echo 'SRCPKGDEST=/out' > /etc/makepkg.conf.d/srcpkgdest.conf
