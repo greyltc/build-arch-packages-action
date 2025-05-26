@@ -14,7 +14,7 @@ main() {
 	echo "root:200000:65536" >> /etc/subuid
  	echo "root:200000:65536" >> /etc/subgid
 	echo "syu"
- 	pacman --sync --refresh --sysupgrade --noconfirm mkosi systemd-ukify
+ 	pacman --sync --refresh --sysupgrade --noconfirm mkosi systemd-ukify sudo
   	mkdir /dir
    	cd /dir
     	echo "build"
