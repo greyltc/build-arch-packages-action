@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+cho#!/usr/bin/env bash
 set -e
 set -o pipefail
 
@@ -81,7 +81,7 @@ main() {
 								runuser -u archie -- makepkg --allsource  # --sign
 		      						#mv *.pkg.tar.zst.sig /out/.
 	       						else
-		     						touch /tmp/fail
+		     						echo "${f}" > /tmp/fail
 		    					fi
 	      						break
 		 				fi
@@ -100,7 +100,7 @@ main() {
  
 	find /packages/ -maxdepth 1 -type d -exec bash -c 'tehbuildloop "${0}"' "{}" \;
  	if test -f /tmp/fail; then
-  		echo "ERROR: Couldn't find ${f} after building it."
+  		echo "ERROR: Couldn't find $(cat /tmp/fail) after trying to building it."
     		exit -44
       	fi
 
