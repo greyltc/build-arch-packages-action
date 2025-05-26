@@ -8,6 +8,25 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # the next two steps disable ubuntu's apparmor to solve permissions issues with mkosi later
+    # from https://github.com/cisagov/action-disable-apparmor/blob/f4cba6ab9bea9ae0829a1676080d5d75cd37f381/action.yml#L20-L32
+    - name: Unload all AppArmor profiles
+      id: unload-apparmor-profiles
+      # The || true is currently necessary because of a bug in
+      # aa-teardown.  See
+      # https://bugs.launchpad.net/ubuntu/+source/apparmor/+bug/2093797
+      # for more details.
+      shell: bash -Eueo pipefail -x {0}
+      run: |
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+        sudo aa-teardown || true
+        sudo sysctl -w kernel.unprivileged_userns_clone=1
+
+    - name: Disable and stop AppArmor systemd service
+      id: disable-apparmor
+      shell: bash -Eueo pipefail -x {0}
+      run: sudo systemctl disable --now apparmor.service
+
     # https://github.com/marketplace/actions/checkout
     - name: Checkout repo
       uses: actions/checkout@v4
@@ -33,7 +52,7 @@ runs:
           mkdir /tmp/some_cache
         fi
 
-    # clear the cache if it was a manual run
+    # clear the cache if this was a manual run
     - name: bust cache
       id: bc
       if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -71,14 +90,25 @@ runs:
         git add . :!bot_info.json
         git commit -m "set build version ${{ env.THIS_VERSTRING }}"
 
-    # https://github.com/marketplace/actions/docker-setup-buildx
-    - name: Docker Setup Buildx
-      uses: docker/setup-buildx-action@v3
-
     - name: touch cache
       id: tc
       shell: bash
       run: mkdir -p out/cache
+
+    # Add support for more platforms with QEMU (optional)
+    # https://github.com/docker/setup-qemu-action
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    # https://github.com/marketplace/actions/docker-setup-buildx
+    - name: Docker Setup Buildx
+      uses: docker/setup-buildx-action@v3
+#      with:
+#        buildkitd-flags: '--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host'
+#        driver: docker-container
+#        driver-opts: |
+#          image=moby/buildkit:master
+#          network=host
 
     # https://github.com/marketplace/actions/build-and-push-docker-images
     # github actions caching here doesn't actually work in practice because the dockerfile uses --mount=type=cache
@@ -89,6 +119,7 @@ runs:
       uses: docker/build-push-action@v6
       with:
         target: export
+        allow: security.insecure
         outputs: type=local,dest=out
         context: ${{ github.action_path }}
         build-contexts: |
@@ -110,7 +141,7 @@ runs:
       if: ${{ github.event_name != 'pull_request' && env.ASSETS != 0 }}
       shell: bash
       run: |
-        echo "Assets is \"{{ env.ASSETS }}\""
+        echo "Assets is \"${{ env.ASSETS }}\""
         ls -al out
         git tag -a "v${{ env.THIS_VERSTRING }}" -m "Build ${{ env.THIS_VERSTRING }}"
         git push -u origin $(git rev-parse --abbrev-ref HEAD) --tags
