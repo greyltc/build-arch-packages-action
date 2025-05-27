@@ -9,6 +9,10 @@ COPY makepkg-url.sh /usr/bin/makepkg-url
 # https://github.com/moby/buildkit/issues/1512#issuecomment-1192878530
 # something like https://github.com/moby/buildkit/issues/1512#issuecomment-1319736671 would probably need to be deployed here to make caching work
 RUN --security=insecure bash /root/builder.sh
+
+# for podman:
+#RUN bash /root/builder.sh
+
 #--mount=type=cache,target=/out/cache,sharing=locked \
 
 FROM scratch AS export
