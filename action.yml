@@ -10,22 +10,22 @@ runs:
   steps:
     # the next two steps disable ubuntu's apparmor to solve permissions issues with mkosi later
     # from https://github.com/cisagov/action-disable-apparmor/blob/f4cba6ab9bea9ae0829a1676080d5d75cd37f381/action.yml#L20-L32
-    - name: Unload all AppArmor profiles
-      id: unload-apparmor-profiles
-      # The || true is currently necessary because of a bug in
-      # aa-teardown.  See
-      # https://bugs.launchpad.net/ubuntu/+source/apparmor/+bug/2093797
-      # for more details.
-      shell: bash -Eueo pipefail -x {0}
-      run: |
-        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-        sudo aa-teardown || true
-        sudo sysctl -w kernel.unprivileged_userns_clone=1
+    #- name: Unload all AppArmor profiles
+    #  id: unload-apparmor-profiles
+    #  # The || true is currently necessary because of a bug in
+    #  # aa-teardown.  See
+    #  # https://bugs.launchpad.net/ubuntu/+source/apparmor/+bug/2093797
+    #  # for more details.
+    #  shell: bash -Eueo pipefail -x {0}
+    #  run: |
+    #    sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+    #    sudo aa-teardown || true
+    #    sudo sysctl -w kernel.unprivileged_userns_clone=1
 
-    - name: Disable and stop AppArmor systemd service
-      id: disable-apparmor
-      shell: bash -Eueo pipefail -x {0}
-      run: sudo systemctl disable --now apparmor.service
+    #- name: Disable and stop AppArmor systemd service
+    #  id: disable-apparmor
+    #  shell: bash -Eueo pipefail -x {0}
+    #  run: sudo systemctl disable --now apparmor.service
 
     # https://github.com/marketplace/actions/checkout
     - name: Checkout repo
