@@ -8,14 +8,15 @@ main() {
 	
 	pacman-key --init
 	pacman --sync --refresh --noconfirm archlinux-keyring
-	pacman --sync --refresh --sysupgrade --noconfirm --needed git pacman-contrib opendoas
+	pacman --sync --refresh --sysupgrade --noconfirm --needed git pacman-contrib opendoas tree
 	git config --global --add safe.directory /packages
 
 	# makepkg hack to run as root
- 	sed 's,exit $E_ROOT,#exit $E_ROOT,' --in-place /usr/bin/makepkg
-  	sed "s,'verifysource' 'version','verifysource' 'version' 'asroot'," --in-place /usr/bin/makepkg
+ 	#sed 's,exit $E_ROOT,#exit $E_ROOT,' --in-place /usr/bin/makepkg
+  	#sed "s,'verifysource' 'version','verifysource' 'version' 'asroot'," --in-place /usr/bin/makepkg
 
-  	echo "permit nopass :archie as root cmd /usr/bin/mkosi" > /etc/doas.conf
+	# allows archie to doas root
+  	echo "permit nopass :archie as root" > /etc/doas.conf
    	chown -c root:root /etc/doas.conf
     	chmod -c 0400 /etc/doas.conf
 
@@ -53,6 +54,9 @@ main() {
  	echo "Cache is $(ls /out/cache/custom/pkg)"
   	#echo 1 > /proc/sys/kernel/unprivileged_userns_clone
 
+	# can be used later to detect if we're in this environment
+   	export BUILDING_IN="build-arch-packages-action"
+
 	tehbuildloop() {
 		cd "${1}"
 		if test -f PKGBUILD; then
@@ -66,20 +70,14 @@ main() {
 	       						ls -al /out/cache/custom/pkg
 	       					else
 							echo "Building $(basename "$(pwd)")"
-       							if test "$(basename "$(pwd)")" = "alarm_image_pi5"; then
-	      							#runuser -u archie -- paru -Syu --needed --noconfirm archlinuxarm-keyring btrfs-progs cpio f2fs-tools dosfstools erofs-utils mtools squashfs-tools pixz
-	      							#makepkg --asroot -Cfi
-	      							runuser -u archie -- paru --upgrade --noconfirm
-	      						else
-								runuser -u archie -- paru --upgrade --noconfirm
-							fi
+       							runuser -u archie -- paru --upgrade --noconfirm
 		    					if test -f "${f}"; then
 								echo "Done building $(basename "$(pwd)")"
 		       						ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
 								runuser -u archie -- makepkg --allsource  # --sign
 		      						#mv *.pkg.tar.zst.sig /out/.
 	       						else
-		     						touch /tmp/fail
+		     						echo "${f}" > /tmp/fail
 		    					fi
 	      						break
 		 				fi
@@ -98,7 +96,7 @@ main() {
  
 	find /packages/ -maxdepth 1 -type d -exec bash -c 'tehbuildloop "${0}"' "{}" \;
  	if test -f /tmp/fail; then
-  		echo "ERROR: Couldn't find ${f} after building it."
+  		echo "ERROR: Couldn't find $(cat /tmp/fail) after trying to building it."
     		exit -44
       	fi
 
@@ -112,6 +110,8 @@ main() {
 	yes | runuser -u archie -- paru -Sccd || true
 	clean_orphans
 	rm -rf /home/archie/.cargo
+ 	echo "/out is:"
+ 	tree /out
 }
 
 clean_orphans() {
