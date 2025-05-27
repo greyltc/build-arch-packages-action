@@ -55,15 +55,15 @@ build artifacts will have now appeard in a directory called `out`
 git clone https://github.com/greyltc/build-arch-packages-action.git
 
 # remove `--security=insecure` from the Dockerfile
-sed 's,--security=insecure,,' --in-place build-arch-packages-action/Dockerfile
+cat build-arch-packages-action/Dockerfile | sed 's,--security=insecure ,,' > Containerfile
 
 ln -s build-arch-packages-action/.dockerignore .  # or just copy it with cp or something
 mkdir -p out/cache  # ensure the cache directory exists
 
 # build the packages
-podman build --cap-add=CAP_SYS_ADMIN --target build --tag built --build-context packages=. --build-context cache=out/cache build-arch-packages-action
+podman build --cap-add=CAP_SYS_ADMIN --target build --tag built --build-context packages=. --build-context cache=out/cache --file Containerfile build-arch-packages-action
 
 # copy them out
-podman build --cap-add=CAP_SYS_ADMIN --target export --output type=local,dest=out --build-context packages=. --build-context cache=out/cache build-arch-packages-action
+podman build --cap-add=CAP_SYS_ADMIN --target export --output type=local,dest=out --build-context packages=. --build-context cache=out/cache --file Containerfile build-arch-packages-action
 ```
 build artifacts will have now appeard in a directory called `out`
