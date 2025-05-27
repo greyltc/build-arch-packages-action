@@ -18,7 +18,7 @@ main() {
 
 	curl --silent --remote-name "${URL}"
 
-	yes | makepkg --clean "$@"
+	makepkg --clean "$@"
 
 	cd -
 }

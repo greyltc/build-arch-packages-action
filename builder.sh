@@ -48,8 +48,7 @@ main() {
 	# bootstrap
  	echo "Bootstrapping paru"
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru" --syncdeps --install --clean --noconfirm --rmdeps
-	echo "Bootstrapping aurutils"
- 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/{PKGBUILD,aurutils.changelog,aurutils.install}?h=aurutils" --syncdeps --install --clean --noconfirm --rmdeps
+ 	#runuser -u archie -- paru -Syu --noconfirm aurutils
 
  	echo "Cache is $(ls /out/cache/custom/pkg)"
   	#echo 1 > /proc/sys/kernel/unprivileged_userns_clone
