@@ -30,8 +30,9 @@ jobs:
 then this action will build all packages in the repo, create a github release for the build, and attach the built packages (and source packages) as artifacts to the release.
 
 ### Local build
-You can use this repo to build your Arch Linux packages locally too, wherever docker-buildx can run:
+You can use this repo to build your Arch Linux packages locally too.
 #### With Docker
+Wherever docker-buildx can run (`ln`, `mkdir` commands might need to be adapted for Windows):
 ```bash
 # starting from a directory containing package folders that each contain PKGBUILD files, etc.
 git clone https://github.com/greyltc/build-arch-packages-action.git
