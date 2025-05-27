@@ -54,6 +54,9 @@ main() {
  	echo "Cache is $(ls /out/cache/custom/pkg)"
   	#echo 1 > /proc/sys/kernel/unprivileged_userns_clone
 
+	# can be used later to detect if we're in this environment
+   	export BUILDING_IN="build-arch-packages-action"
+
 	tehbuildloop() {
 		cd "${1}"
 		if test -f PKGBUILD; then
