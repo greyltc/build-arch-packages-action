@@ -64,6 +64,10 @@ main() {
 				echo "Considering $(basename "$(pwd)")"
 					for f in $(runuser -u archie -- makepkg --packagelist); do
 	    					echo "Looking for ${f}"
+	  					if grep '^# force build' PKGBUILD; then
+							echo "Forcing a rebuild of ${f}"
+							rm -f "${f}"
+ 						fi
 	    					if test -f "${f}"; then
 		 					echo "We already had ${f}"
 	       						ls -al /out/cache/custom/pkg
