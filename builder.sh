@@ -113,6 +113,12 @@ main() {
 	yes | runuser -u archie -- paru -Sccd || true
 	clean_orphans
 	rm -rf /home/archie/.cargo
+	
+	# make a pacman repo db
+	cd /out
+	repo-add repo.db.tar.zst *.pkg.tar.zst
+	cd -
+	
  	echo "/out is:"
  	tree /out
 }
