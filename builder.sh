@@ -5,7 +5,7 @@ set -o pipefail
 main() {
 	mkdir --parents /out/cache/custom/{src,pkg} /out/cache/pkg
 	mv /out/cache/pkg/* /var/cache/pacman/pkg/. || true
-	
+
 	pacman-key --init
 	pacman --sync --refresh --noconfirm archlinux-keyring
 	pacman --sync --refresh --sysupgrade --noconfirm --needed git pacman-contrib opendoas tree
@@ -96,29 +96,31 @@ main() {
 		fi
 	}
 	export -f tehbuildloop
- 
+	
 	find /packages/ -maxdepth 1 -type d -exec bash -c 'tehbuildloop "${0}"' "{}" \;
- 	if test -f /tmp/fail; then
-  		echo "ERROR: Couldn't find $(cat /tmp/fail) after trying to building it."
-    		exit -44
-      	fi
+	if test -f /tmp/fail; then
+		echo "ERROR: Couldn't find $(cat /tmp/fail) after trying to building it."
+		exit -44
+	fi
 
 	git clean -ffxd || true
 	paccache --remove --keep 1
- 	paccache --remove --keep 1 --min-mtime "1 day ago" --cachedir /out/cache/custom/pkg
-  	# /out/cache/custom/src will grow unboundedly...just clear it every now and then with this?
-   	# rm -f /out/cache/custom/src/*
+	paccache --remove --keep 1 --min-mtime "1 day ago" --cachedir /out/cache/custom/pkg
+	# /out/cache/custom/src will grow unboundedly...just clear it every now and then with this?
+	# rm -f /out/cache/custom/src/*
 	paccache -m /out/cache/pkg -k0
 	yes | pacman -Scc || true
 	yes | runuser -u archie -- paru -Sccd || true
 	clean_orphans
 	rm -rf /home/archie/.cargo
-	
+
 	# make a pacman repo db
 	cd /out
 	repo-add repo.db.tar.zst *.pkg.tar.zst
+	mv repo.db.tar.zst repo.db
+	mv repo.files.tar.zst repo.files
 	cd -
-	
+
  	echo "/out is:"
  	tree /out
 }
