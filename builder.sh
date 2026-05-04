@@ -16,49 +16,25 @@ main() {
 	git config --global --add safe.directory /packages
 
 	# makepkg hack to run as root
- 	#sed 's,exit $E_ROOT,#exit $E_ROOT,' --in-place /usr/bin/makepkg
-  	#sed "s,'verifysource' 'version','verifysource' 'version' 'asroot'," --in-place /usr/bin/makepkg
+	#sed 's,exit $E_ROOT,#exit $E_ROOT,' --in-place /usr/bin/makepkg
+	#sed "s,'verifysource' 'version','verifysource' 'version' 'asroot'," --in-place /usr/bin/makepkg
 
 	# allows archie to doas root
-  	echo "permit nopass :archie as root" > /etc/doas.conf
-   	chown -c root:root /etc/doas.conf
-    	chmod -c 0400 /etc/doas.conf
+	echo "permit nopass :archie as root" > /etc/doas.conf
+	chown -c root:root /etc/doas.conf
+	chmod -c 0400 /etc/doas.conf
 
 	useradd --create-home archie
 	chown --recursive archie /out /packages
 	echo "archie ALL=(ALL) NOPASSWD: /usr/bin/pacman" > "/etc/sudoers.d/allow_archie_to_pacman"
 	echo "root ALL=(ALL) CWD=* ALL" > /etc/sudoers.d/permissive_root_Chdir_Spec
 
-	if test ! -f /out/cache/custom/pkg/custom.db.tar.gz; then
-		runuser -u archie -- repo-add --new /out/cache/custom/pkg/custom.db.tar.gz
-  	fi
-	find /out/cache/custom/pkg -type f -name '*.pkg.tar.zst' -exec runuser -u archie -- repo-add --new /out/cache/custom/pkg/custom.db.tar.gz {} \;
-
-	if ! grep 'custom.conf' /etc/pacman.conf; then
-		echo "Include = /etc/pacman.d/custom.conf" >> /etc/pacman.conf
-	fi
-	cat <<- 'EOF' > /etc/pacman.d/custom.conf
-		[custom]
-		SigLevel = Optional TrustAll
-		Server = file:///out/cache/custom/pkg
-	EOF
-	echo 'PKGDEST=/out/cache/custom/pkg' > /etc/makepkg.conf.d/pkgdest.conf
-	echo 'SRCPKGDEST=/out' > /etc/makepkg.conf.d/srcpkgdest.conf
-	echo 'SRCDEST=/out/cache/custom/src' > /etc/makepkg.conf.d/srcdest.conf
-	echo 'OPTIONS=(!debug)' > /etc/makepkg.conf.d/nodebug.conf
-
-	pacman --sync --refresh --sysupgrade --noconfirm
-
-	# bootstrap
- 	echo "Bootstrapping paru"
-	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru" --syncdeps --install --clean --noconfirm --rmdeps
- 	#runuser -u archie -- paru -Syu --noconfirm aurutils
-
 	# handle r2repo sources if provided
 	if test ! -z "${_r2repo_sources}"; then
 		echo "Handling r2repo setup..."
 		runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=r2repo" --syncdeps --install --clean --noconfirm --rmdeps
-		systemctl start caddy-api.service
+		run0 --user caddy --group caddy caddy start
+		#systemctl start caddy-api.service
 
 		# split r2repo config params
 		#IFS=$'\n' read -ra '' -a R2REPO_SOURCES <<< "${_r2repo_sources}"
@@ -99,44 +75,69 @@ main() {
 		pacman --sync --refresh --sysupgrade --noconfirm
 	fi
 
- 	echo "Cache is $(ls /out/cache/custom/pkg)"
-  	#echo 1 > /proc/sys/kernel/unprivileged_userns_clone
+	# set up local pacman repo
+	if test ! -f /out/cache/custom/pkg/custom.db.tar.gz; then
+		runuser -u archie -- repo-add --new /out/cache/custom/pkg/custom.db.tar.gz
+	fi
+	find /out/cache/custom/pkg -type f -name '*.pkg.tar.zst' -exec runuser -u archie -- repo-add --new /out/cache/custom/pkg/custom.db.tar.gz {} \;
+
+	if ! grep 'custom.conf' /etc/pacman.conf; then
+		echo "Include = /etc/pacman.d/custom.conf" >> /etc/pacman.conf
+	fi
+	cat <<- 'EOF' > /etc/pacman.d/custom.conf
+		[custom]
+		SigLevel = Optional TrustAll
+		Server = file:///out/cache/custom/pkg
+	EOF
+	echo 'PKGDEST=/out/cache/custom/pkg' > /etc/makepkg.conf.d/pkgdest.conf
+	echo 'SRCPKGDEST=/out' > /etc/makepkg.conf.d/srcpkgdest.conf
+	echo 'SRCDEST=/out/cache/custom/src' > /etc/makepkg.conf.d/srcdest.conf
+	echo 'OPTIONS=(!debug)' > /etc/makepkg.conf.d/nodebug.conf
+
+	pacman --sync --refresh --sysupgrade --noconfirm
+
+	echo "Bootstrapping paru"
+	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru" --syncdeps --install --clean --noconfirm --rmdeps
+	#runuser -u archie -- paru -Syu --noconfirm aurutils
+
+	echo "Cache is $(ls /out/cache/custom/pkg)"
+	#echo 1 > /proc/sys/kernel/unprivileged_userns_clone
 
 	# can be used later to detect if we're in this environment
-   	export BUILDING_IN="build-arch-packages-action"
+	export BUILDING_IN="build-arch-packages-action"
 
 	tehbuildloop() {
 		cd "${1}"
 		if test -f PKGBUILD; then
 			if ! grep '^# do not build' PKGBUILD; then
-   				if test ! -f /tmp/fail; then
-				echo "Considering $(basename "$(pwd)")"
+				if test ! -f /tmp/fail; then
+					echo "Considering $(basename "$(pwd)")"
 					for f in $(runuser -u archie -- makepkg --packagelist); do
-	    					echo "Looking for ${f}"
-	  					if grep '^# force build' PKGBUILD; then
+						echo "Looking for ${f}"
+						if grep '^# force build' PKGBUILD; then
 							echo "Forcing a rebuild of ${f}"
 							rm -f "${f}"
- 						fi
-	    					if test -f "${f}"; then
-		 					echo "We already had ${f}"
-	       						ls -al /out/cache/custom/pkg
-	       					else
+						fi
+						if test -f "${f}"; then
+							echo "We already had ${f}"
+							ls -al /out/cache/custom/pkg
+						else
 							echo "Building $(basename "$(pwd)")"
-       							runuser -u archie -- paru --upgrade --noconfirm
-		    					if test -f "${f}"; then
+							runuser -u archie -- paru --upgrade --noconfirm
+							if test -f "${f}"; then
 								echo "Done building $(basename "$(pwd)")"
-		       						ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
+								ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
 								runuser -u archie -- makepkg --allsource  # --sign
-		      						#mv *.pkg.tar.zst.sig /out/.
-	       						else
-		     						echo "${f}" > /tmp/fail
-		    					fi
-	      						break
-		 				fi
+								#mv *.pkg.tar.zst.sig /out/.
+							else
+								echo "${f}" > /tmp/fail
+							fi
+							break
+						fi
 					done
-     				else
-					echo "Skipping $(pwd) because of precious failure"
-  				fi
+				else
+					echo "Skipping $(pwd) because of previous failure"
+				fi
 			else
 				echo "Skipping $(pwd) because # do not build in PKGBUILD"
 			fi
@@ -170,8 +171,8 @@ main() {
 	mv repo.files.tar.zst repo.files
 	cd -
 
- 	echo "/out is:"
- 	tree /out
+	echo "/out is:"
+	tree /out
 }
 
 clean_orphans() {
