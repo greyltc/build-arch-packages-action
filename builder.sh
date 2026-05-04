@@ -33,6 +33,7 @@ main() {
 	if test ! -z "${_r2repo_sources}"; then
 		echo "Handling r2repo setup..."
 		runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=r2repo" --syncdeps --install --clean --noconfirm --rmdeps
+		echo "Installed r2repo, now starting caddy server for it..."
 		run0 --user caddy --group caddy caddy start
 		#systemctl start caddy-api.service
 
