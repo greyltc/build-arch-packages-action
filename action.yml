@@ -5,6 +5,10 @@ inputs:
     description: 'GitHub Token'
     required: true
     default: 'FAIL'
+  r2repo-sorces:
+    description: 'Sources for releases2repo'
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -105,6 +109,8 @@ runs:
         build-contexts: |
           packages=.
           cache=/tmp/some_cache
+        build-args: |
+          r2repo_sources="${{ inputs.r2repo-sorces }}"
         #cache-from: type=gha
         #cache-to: type=gha,mode=max
         #cache-from: type=local,src=/tmp/.buildx-cache
