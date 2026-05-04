@@ -50,6 +50,48 @@ main() {
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru" --syncdeps --install --clean --noconfirm --rmdeps
  	#runuser -u archie -- paru -Syu --noconfirm aurutils
 
+	# handle r2repo sources if provided
+	if test ! -z "${r2repo_sources}"; then
+		echo "Handling r2repo setup..."
+		runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=r2repo" --syncdeps --install --clean --noconfirm --rmdeps
+		systemctl start caddy-api.service
+
+		# split r2repo config params by newline
+		IFS=$'\n' read -rd '' -a R2REPO_SOURCES <<< "${r2repo_sources}"
+		for r2reposrc in "${R2REPO_SOURCES[@]}"; do
+			echo "Setting up r2repo for ${r2reposrc}"
+			IFS='/' read -ra parts <<< "${r2reposrc}"
+			_r2repo_base_cmd="r2repo"
+			if test ! -z "${parts[1]}"; then
+				_r2repo_base_cmd+=" --type ${parts[1]}"
+			fi
+			if test ! -z "${parts[2]}"; then
+				_r2repo_base_cmd+=" --owner ${parts[2]}"
+			fi
+			if test ! -z "${parts[3]}"; then
+				_r2repo_base_cmd+=" --repo ${parts[3]}"
+			fi
+			_r2repo_cmd="${_r2repo_base_cmd} --sync"
+			echo "Syncing r2repo with ${_r2repo_cmd}..."
+			if test ! -z "${parts[4]}"; then
+				GH_TOKEN="${parts[4]}" ${_r2repo_cmd}
+			else
+				${_r2repo_cmd}
+			fi
+			_r2repo_cmd="${_r2repo_base_cmd} --caddy"
+			echo "Configuring caddy r2repo server with ${_r2repo_cmd}..."
+			if test ! -z "${parts[4]}"; then
+				GH_TOKEN="${parts[4]}" ${_r2repo_cmd}
+			else
+				${_r2repo_cmd}
+			fi
+
+			echo "Setting r2repo pacman config:"
+			r2repo --gen-pacman-config | tee -a /etc/pacman.conf
+
+		echo "Syncing pacman with r2repo sources"
+		pacman --sync --refresh --sysupgrade --noconfirm
+
  	echo "Cache is $(ls /out/cache/custom/pkg)"
   	#echo 1 > /proc/sys/kernel/unprivileged_userns_clone
 

@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1-labs
+ARG r2repo_sources=""
 FROM archlinux:base-devel AS build
 COPY --from=packages . /packages/
 COPY --from=cache . /out/cache/
