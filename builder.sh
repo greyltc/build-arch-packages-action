@@ -35,7 +35,7 @@ main() {
 		#ln -s /dev/null /etc/pacman.d/hooks/21-systemd-tmpfiles.hook
 		runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=r2repo" --syncdeps --install --clean --noconfirm --rmdeps
 		echo "Installed r2repo, now starting caddy server for it..."
-		run0 --user caddy --group caddy caddy start
+		runuser --user caddy --group caddy -- caddy start
 		#systemctl start caddy-api.service
 
 		# split r2repo config params
