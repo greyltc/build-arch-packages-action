@@ -5,7 +5,7 @@ inputs:
     description: 'GitHub Token'
     required: true
     default: 'FAIL'
-  r2repo-sorces:
+  r2repo-sources:
     description: 'Sources for releases2repo'
     required: false
     default: ''
@@ -110,7 +110,7 @@ runs:
           packages=.
           cache=/tmp/some_cache
         build-args: |
-          "r2repo_sources=${{ inputs.r2repo-sorces }}"
+          "r2repo_sources=${{ inputs.r2repo-sources }}"
         #cache-from: type=gha
         #cache-to: type=gha,mode=max
         #cache-from: type=local,src=/tmp/.buildx-cache
