@@ -110,7 +110,8 @@ runs:
           packages=.
           cache=/tmp/some_cache
         build-args: |
-          r2repo_sources="${{ inputs.r2repo_sources }}"
+          r2repo_sources=${{ inputs.r2repo_sources }}
+          arg2=testing
         #cache-from: type=gha
         #cache-to: type=gha,mode=max
         #cache-from: type=local,src=/tmp/.buildx-cache
