@@ -5,7 +5,7 @@ inputs:
     description: 'GitHub Token'
     required: true
     default: 'FAIL'
-  r2repo-sources:
+  r2repo_sources:
     description: 'Sources for releases2repo'
     required: false
     default: ''

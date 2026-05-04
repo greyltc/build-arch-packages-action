@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1-labs
+ARG r2repo_sources=""
 FROM archlinux:base-devel AS build
 COPY --from=packages . /packages/
 COPY --from=cache . /out/cache/
@@ -8,7 +9,6 @@ COPY makepkg-url.sh /usr/bin/makepkg-url
 # https://github.com/moby/buildkit/issues/1512
 # https://github.com/moby/buildkit/issues/1512#issuecomment-1192878530
 # something like https://github.com/moby/buildkit/issues/1512#issuecomment-1319736671 would probably need to be deployed here to make caching work
-ARG r2repo_sources=""
 RUN --security=insecure ["/bin/bash", "-c", "/root/builder.sh", "$r2repo_sources"]
 
 # for podman:
