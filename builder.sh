@@ -2,6 +2,8 @@
 set -e
 set -o pipefail
 
+r2repo_sources="${1:-}"
+
 main() {
 	mkdir --parents /out/cache/custom/{src,pkg} /out/cache/pkg
 	mv /out/cache/pkg/* /var/cache/pacman/pkg/. || true
