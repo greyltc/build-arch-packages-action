@@ -88,9 +88,11 @@ main() {
 
 			echo "Setting r2repo pacman config:"
 			r2repo --gen-pacman-config | tee -a /etc/pacman.conf
+		done
 
 		echo "Syncing pacman with r2repo sources"
 		pacman --sync --refresh --sysupgrade --noconfirm
+	fi
 
  	echo "Cache is $(ls /out/cache/custom/pkg)"
   	#echo 1 > /proc/sys/kernel/unprivileged_userns_clone
@@ -142,7 +144,7 @@ main() {
 	find /packages/ -maxdepth 1 -type d -exec bash -c 'tehbuildloop "${0}"' "{}" \;
 	if test -f /tmp/fail; then
 		echo "ERROR: Couldn't find $(cat /tmp/fail) after trying to building it."
-		exit -44
+		exit 44
 	fi
 
 	git clean -ffxd || true
