@@ -5,6 +5,7 @@ set -o pipefail
 r2repo_sources="${1:-}"
 
 main() {
+	local _r2repo_sources="${1:-}"
 	mkdir --parents /out/cache/custom/{src,pkg} /out/cache/pkg
 	mv /out/cache/pkg/* /var/cache/pacman/pkg/. || true
 
@@ -53,13 +54,13 @@ main() {
  	#runuser -u archie -- paru -Syu --noconfirm aurutils
 
 	# handle r2repo sources if provided
-	if test ! -z "${r2repo_sources}"; then
+	if test ! -z "${_r2repo_sources}"; then
 		echo "Handling r2repo setup..."
 		runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=r2repo" --syncdeps --install --clean --noconfirm --rmdeps
 		systemctl start caddy-api.service
 
 		# split r2repo config params by newline
-		IFS=$'\n' read -rd '' -a R2REPO_SOURCES <<< "${r2repo_sources}"
+		IFS=$'\n' read -rd '' -a R2REPO_SOURCES <<< "${_r2repo_sources}"
 		for r2reposrc in "${R2REPO_SOURCES[@]}"; do
 			echo "Setting up r2repo for ${r2reposrc}"
 			IFS='/' read -ra parts <<< "${r2reposrc}"
@@ -178,4 +179,4 @@ clean_orphans() {
 	fi
 }
 
-main
+main "${r2repo_sources}"
