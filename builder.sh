@@ -2,7 +2,11 @@
 set -e
 set -o pipefail
 
+r2repo_sources="${1:-}"
+echo "r2repo_sources: ${r2repo_sources}"
+
 main() {
+	local _r2repo_sources="${1:-}"
 	mkdir --parents /out/cache/custom/{src,pkg} /out/cache/pkg
 	mv /out/cache/pkg/* /var/cache/pacman/pkg/. || true
 
@@ -12,22 +16,72 @@ main() {
 	git config --global --add safe.directory /packages
 
 	# makepkg hack to run as root
- 	#sed 's,exit $E_ROOT,#exit $E_ROOT,' --in-place /usr/bin/makepkg
-  	#sed "s,'verifysource' 'version','verifysource' 'version' 'asroot'," --in-place /usr/bin/makepkg
+	#sed 's,exit $E_ROOT,#exit $E_ROOT,' --in-place /usr/bin/makepkg
+	#sed "s,'verifysource' 'version','verifysource' 'version' 'asroot'," --in-place /usr/bin/makepkg
 
 	# allows archie to doas root
-  	echo "permit nopass :archie as root" > /etc/doas.conf
-   	chown -c root:root /etc/doas.conf
-    	chmod -c 0400 /etc/doas.conf
+	echo "permit nopass :archie as root" > /etc/doas.conf
+	chown -c root:root /etc/doas.conf
+	chmod -c 0400 /etc/doas.conf
 
 	useradd --create-home archie
 	chown --recursive archie /out /packages
 	echo "archie ALL=(ALL) NOPASSWD: /usr/bin/pacman" > "/etc/sudoers.d/allow_archie_to_pacman"
 	echo "root ALL=(ALL) CWD=* ALL" > /etc/sudoers.d/permissive_root_Chdir_Spec
 
+	# handle r2repo sources if provided
+	if test ! -z "${_r2repo_sources}"; then
+		echo "Handling r2repo setup..."
+		#ln -s /dev/null /etc/pacman.d/hooks/21-systemd-tmpfiles.hook
+		runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=r2repo" --syncdeps --install --clean --noconfirm --rmdeps
+		echo "Installed r2repo, now starting caddy server for it..."
+		runuser --user caddy --group caddy -- caddy start
+		curl -X DELETE "http://localhost:2019/config/"
+		#systemctl start caddy-api.service
+
+		# split r2repo config params
+		#IFS=$'\n' read -ra '' -a R2REPO_SOURCES <<< "${_r2repo_sources}"
+		IFS=',' read -ra '' -a R2REPO_SOURCES <<< "${_r2repo_sources}"
+		for r2reposrc in "${R2REPO_SOURCES[@]}"; do
+			echo "Setting up r2repo for ${r2reposrc}"
+			IFS='/' read -ra parts <<< "${r2reposrc}"
+			_r2repo_base_cmd="r2repo"
+			if test ! -z "${parts[0]}"; then
+				_r2repo_base_cmd+=" --type ${parts[0]}"
+			fi
+			if test ! -z "${parts[1]}"; then
+				_r2repo_base_cmd+=" --owner ${parts[1]}"
+			fi
+			if test ! -z "${parts[2]}"; then
+				_r2repo_base_cmd+=" --repo ${parts[2]}"
+			fi
+			_r2repo_cmd="${_r2repo_base_cmd} --sync"
+			echo "Syncing r2repo with ${_r2repo_cmd}..."
+			if test ! -z "${parts[3]}"; then
+				GH_TOKEN="${parts[3]}" ${_r2repo_cmd}
+			else
+				${_r2repo_cmd}
+			fi
+			_r2repo_cmd="${_r2repo_base_cmd} --caddy"
+			echo "Configuring caddy r2repo server with ${_r2repo_cmd}..."
+			if test ! -z "${parts[4]}"; then
+				GH_TOKEN="${parts[4]}" ${_r2repo_cmd}
+			else
+				${_r2repo_cmd}
+			fi
+
+			echo "Setting r2repo pacman config:"
+			r2repo --gen-pacman-config | tee -a /etc/pacman.conf
+		done
+
+		echo "Syncing pacman with r2repo sources"
+		pacman --sync --refresh --sysupgrade --noconfirm
+	fi
+
+	# set up local pacman repo
 	if test ! -f /out/cache/custom/pkg/custom.db.tar.gz; then
 		runuser -u archie -- repo-add --new /out/cache/custom/pkg/custom.db.tar.gz
-  	fi
+	fi
 	find /out/cache/custom/pkg -type f -name '*.pkg.tar.zst' -exec runuser -u archie -- repo-add --new /out/cache/custom/pkg/custom.db.tar.gz {} \;
 
 	if ! grep 'custom.conf' /etc/pacman.conf; then
@@ -45,91 +99,48 @@ main() {
 
 	pacman --sync --refresh --sysupgrade --noconfirm
 
-	# bootstrap
- 	echo "Bootstrapping paru"
+	echo "Bootstrapping paru"
 	runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=paru" --syncdeps --install --clean --noconfirm --rmdeps
- 	#runuser -u archie -- paru -Syu --noconfirm aurutils
+	#runuser -u archie -- paru -Syu --noconfirm aurutils
 
-	# handle r2repo sources if provided
-	if test ! -z "${r2repo_sources}"; then
-		echo "Handling r2repo setup..."
-		runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=r2repo" --syncdeps --install --clean --noconfirm --rmdeps
-		systemctl start caddy-api.service
-
-		# split r2repo config params by newline
-		IFS=$'\n' read -rd '' -a R2REPO_SOURCES <<< "${r2repo_sources}"
-		for r2reposrc in "${R2REPO_SOURCES[@]}"; do
-			echo "Setting up r2repo for ${r2reposrc}"
-			IFS='/' read -ra parts <<< "${r2reposrc}"
-			_r2repo_base_cmd="r2repo"
-			if test ! -z "${parts[1]}"; then
-				_r2repo_base_cmd+=" --type ${parts[1]}"
-			fi
-			if test ! -z "${parts[2]}"; then
-				_r2repo_base_cmd+=" --owner ${parts[2]}"
-			fi
-			if test ! -z "${parts[3]}"; then
-				_r2repo_base_cmd+=" --repo ${parts[3]}"
-			fi
-			_r2repo_cmd="${_r2repo_base_cmd} --sync"
-			echo "Syncing r2repo with ${_r2repo_cmd}..."
-			if test ! -z "${parts[4]}"; then
-				GH_TOKEN="${parts[4]}" ${_r2repo_cmd}
-			else
-				${_r2repo_cmd}
-			fi
-			_r2repo_cmd="${_r2repo_base_cmd} --caddy"
-			echo "Configuring caddy r2repo server with ${_r2repo_cmd}..."
-			if test ! -z "${parts[4]}"; then
-				GH_TOKEN="${parts[4]}" ${_r2repo_cmd}
-			else
-				${_r2repo_cmd}
-			fi
-
-			echo "Setting r2repo pacman config:"
-			r2repo --gen-pacman-config | tee -a /etc/pacman.conf
-
-		echo "Syncing pacman with r2repo sources"
-		pacman --sync --refresh --sysupgrade --noconfirm
-
- 	echo "Cache is $(ls /out/cache/custom/pkg)"
-  	#echo 1 > /proc/sys/kernel/unprivileged_userns_clone
+	echo "Cache is $(ls /out/cache/custom/pkg)"
+	#echo 1 > /proc/sys/kernel/unprivileged_userns_clone
 
 	# can be used later to detect if we're in this environment
-   	export BUILDING_IN="build-arch-packages-action"
+	export BUILDING_IN="build-arch-packages-action"
 
 	tehbuildloop() {
 		cd "${1}"
 		if test -f PKGBUILD; then
 			if ! grep '^# do not build' PKGBUILD; then
-   				if test ! -f /tmp/fail; then
-				echo "Considering $(basename "$(pwd)")"
+				if test ! -f /tmp/fail; then
+					echo "Considering $(basename "$(pwd)")"
 					for f in $(runuser -u archie -- makepkg --packagelist); do
-	    					echo "Looking for ${f}"
-	  					if grep '^# force build' PKGBUILD; then
+						echo "Looking for ${f}"
+						if grep '^# force build' PKGBUILD; then
 							echo "Forcing a rebuild of ${f}"
 							rm -f "${f}"
- 						fi
-	    					if test -f "${f}"; then
-		 					echo "We already had ${f}"
-	       						ls -al /out/cache/custom/pkg
-	       					else
+						fi
+						if test -f "${f}"; then
+							echo "We already had ${f}"
+							ls -al /out/cache/custom/pkg
+						else
 							echo "Building $(basename "$(pwd)")"
-       							runuser -u archie -- paru --upgrade --noconfirm
-		    					if test -f "${f}"; then
+							runuser -u archie -- paru --upgrade --noconfirm
+							if test -f "${f}"; then
 								echo "Done building $(basename "$(pwd)")"
-		       						ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
+								ln -s ./cache/custom/pkg/$(basename "${f}") /out/.
 								runuser -u archie -- makepkg --allsource  # --sign
-		      						#mv *.pkg.tar.zst.sig /out/.
-	       						else
-		     						echo "${f}" > /tmp/fail
-		    					fi
-	      						break
-		 				fi
+								#mv *.pkg.tar.zst.sig /out/.
+							else
+								echo "${f}" > /tmp/fail
+							fi
+							break
+						fi
 					done
-     				else
-					echo "Skipping $(pwd) because of precious failure"
-  				fi
+				else
+					echo "Skipping $(pwd) because of previous failure"
+				fi
 			else
 				echo "Skipping $(pwd) because # do not build in PKGBUILD"
 			fi
@@ -142,7 +153,7 @@ main() {
 	find /packages/ -maxdepth 1 -type d -exec bash -c 'tehbuildloop "${0}"' "{}" \;
 	if test -f /tmp/fail; then
 		echo "ERROR: Couldn't find $(cat /tmp/fail) after trying to building it."
-		exit -44
+		exit 44
 	fi
 
 	git clean -ffxd || true
@@ -163,8 +174,8 @@ main() {
 	mv repo.files.tar.zst repo.files
 	cd -
 
- 	echo "/out is:"
- 	tree /out
+	echo "/out is:"
+	tree /out
 }
 
 clean_orphans() {
@@ -174,4 +185,4 @@ clean_orphans() {
 	fi
 }
 
-main
+main "${r2repo_sources}"
