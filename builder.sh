@@ -4,6 +4,7 @@ set -o pipefail
 
 r2repo_sources="${1:-}"
 echo "r2repo_sources: ${r2repo_sources}"
+printenv
 
 main() {
 	local _r2repo_sources="${1:-}"
