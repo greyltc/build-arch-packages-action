@@ -75,6 +75,9 @@ main() {
 			r2repo --gen-pacman-config | tee -a /etc/pacman.conf
 		done
 
+		unset R2REPO_TOKEN
+		unset GITHUB_TOKEN
+		unset GH_TOKEN
 		echo "Syncing pacman with r2repo sources"
 		pacman --sync --refresh --sysupgrade --noconfirm
 	fi
@@ -157,6 +160,7 @@ main() {
 		exit 44
 	fi
 
+	curl -X DELETE "http://localhost:2019/config/" || true
 	git clean -ffxd || true
 	paccache --remove --keep 1
 	paccache --remove --keep 1 --min-mtime "1 day ago" --cachedir /out/cache/custom/pkg
