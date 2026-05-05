@@ -33,12 +33,10 @@ main() {
 	# handle r2repo sources if provided
 	if test ! -z "${_r2repo_sources}"; then
 		echo "Handling r2repo setup..."
-		#ln -s /dev/null /etc/pacman.d/hooks/21-systemd-tmpfiles.hook
 		runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=r2repo" --syncdeps --install --clean --noconfirm --rmdeps
 		echo "Installed r2repo, now starting caddy server for it..."
 		runuser --user caddy --group caddy -- caddy start
 		curl -X DELETE "http://localhost:2019/config/"
-		#systemctl start caddy-api.service
 
 		# split r2repo config params
 		#IFS=$'\n' read -ra '' -a R2REPO_SOURCES <<< "${_r2repo_sources}"
