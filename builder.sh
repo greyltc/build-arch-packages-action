@@ -3,8 +3,6 @@ set -e
 set -o pipefail
 
 r2repo_sources="${1:-}"
-echo "r2repo_sources: ${r2repo_sources}"
-printenv
 
 main() {
 	local _r2repo_sources="${1:-}"
@@ -57,14 +55,14 @@ main() {
 			_r2repo_cmd="${_r2repo_base_cmd} --sync"
 			echo "Syncing r2repo with ${_r2repo_cmd}..."
 			if test ! -z "${parts[3]}"; then
-				GH_TOKEN="${parts[3]}" ${_r2repo_cmd}
+				R2REPO_TOKEN="${parts[3]}" ${_r2repo_cmd}
 			else
 				${_r2repo_cmd}
 			fi
 			_r2repo_cmd="${_r2repo_base_cmd} --caddy"
 			echo "Configuring caddy r2repo server with ${_r2repo_cmd}..."
-			if test ! -z "${parts[4]}"; then
-				GH_TOKEN="${parts[4]}" ${_r2repo_cmd}
+			if test ! -z "${parts[3]}"; then
+				R2REPO_TOKEN="${parts[3]}" ${_r2repo_cmd}
 			else
 				${_r2repo_cmd}
 			fi
@@ -73,9 +71,6 @@ main() {
 			r2repo --gen-pacman-config | tee -a /etc/pacman.conf
 		done
 
-		unset R2REPO_TOKEN
-		unset GITHUB_TOKEN
-		unset GH_TOKEN
 		echo "Syncing pacman with r2repo sources"
 		pacman --sync --refresh --sysupgrade --noconfirm
 	fi
