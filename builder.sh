@@ -3,7 +3,6 @@ set -e
 set -o pipefail
 
 r2repo_sources="${1:-}"
-echo "r2repo_sources: ${r2repo_sources}"
 
 main() {
 	local _r2repo_sources="${1:-}"
@@ -32,12 +31,10 @@ main() {
 	# handle r2repo sources if provided
 	if test ! -z "${_r2repo_sources}"; then
 		echo "Handling r2repo setup..."
-		#ln -s /dev/null /etc/pacman.d/hooks/21-systemd-tmpfiles.hook
 		runuser -u archie -- makepkg-url "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=r2repo" --syncdeps --install --clean --noconfirm --rmdeps
 		echo "Installed r2repo, now starting caddy server for it..."
 		runuser --user caddy --group caddy -- caddy start
 		curl -X DELETE "http://localhost:2019/config/"
-		#systemctl start caddy-api.service
 
 		# split r2repo config params
 		#IFS=$'\n' read -ra '' -a R2REPO_SOURCES <<< "${_r2repo_sources}"
@@ -58,14 +55,14 @@ main() {
 			_r2repo_cmd="${_r2repo_base_cmd} --sync"
 			echo "Syncing r2repo with ${_r2repo_cmd}..."
 			if test ! -z "${parts[3]}"; then
-				GH_TOKEN="${parts[3]}" ${_r2repo_cmd}
+				R2REPO_TOKEN="${parts[3]}" ${_r2repo_cmd}
 			else
 				${_r2repo_cmd}
 			fi
 			_r2repo_cmd="${_r2repo_base_cmd} --caddy"
 			echo "Configuring caddy r2repo server with ${_r2repo_cmd}..."
-			if test ! -z "${parts[4]}"; then
-				GH_TOKEN="${parts[4]}" ${_r2repo_cmd}
+			if test ! -z "${parts[3]}"; then
+				R2REPO_TOKEN="${parts[3]}" ${_r2repo_cmd}
 			else
 				${_r2repo_cmd}
 			fi
@@ -156,6 +153,7 @@ main() {
 		exit 44
 	fi
 
+	curl -X DELETE "http://localhost:2019/config/" || true
 	git clean -ffxd || true
 	paccache --remove --keep 1
 	paccache --remove --keep 1 --min-mtime "1 day ago" --cachedir /out/cache/custom/pkg
